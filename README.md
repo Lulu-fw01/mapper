@@ -1,2 +1,2 @@
 # task-4-mapper
-4th task of software designe course.
+4th task of software design course.
