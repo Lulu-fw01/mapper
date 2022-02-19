@@ -1,11 +1,14 @@
 package luka.mapper;
 
+import ru.hse.homework4.Exported;
+import ru.hse.homework4.Ignored;
 import ru.hse.homework4.Mapper;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 
 public class LuluMapper implements Mapper {
@@ -123,7 +126,57 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public String writeToString(Object object) {
-        return null;
+        if (object == null || !object.getClass().isAnnotationPresent(Exported.class)) {
+            return "";
+        }
+
+        StringBuilder result = new StringBuilder("{");
+
+        var objClass = object.getClass();
+        var objFields = objClass.getFields();
+        for (var field : objFields) {
+            if (!field.isAnnotationPresent(Ignored.class)) {
+                var jsonString = fieldToJSONString(object, field);
+                result.append(String.format("%s,", jsonString));
+            }
+        }
+
+        return result.toString();
+    }
+
+    String fieldToJSONString(Object object, Field field) {
+        StringBuilder result = new StringBuilder("");
+
+        String value = "";
+
+        // Check if class is primitive, string or Wrapper(not check!!!!!).
+
+        try {
+            // Primitive, wrapper or String.
+            if (field.getType() == String.class || field.getType().isPrimitive() || isWrapper(field.getType())) {
+                field.setAccessible(true);
+                value = field.get(object).toString();
+                // Check property name.
+                result.append(String.format("\"%s\": \"%s\"", field.getName(), value));
+            } else {
+                // Collection, big class
+            }
+        } catch (IllegalAccessException ignored) {
+        }
+
+
+        return result.toString();
+    }
+
+    private boolean isWrapper(Class<?> clazz) {
+        if (clazz == null) {
+            return false;
+        }
+
+        return clazz == Boolean.class || clazz == Character.class ||
+                clazz == Byte.class || clazz == Short.class ||
+                clazz == Integer.class || clazz == Long.class ||
+                clazz == Float.class || clazz == Double.class;
     }
 
     /**

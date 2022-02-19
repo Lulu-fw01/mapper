@@ -1,6 +1,8 @@
 package luka.mapper;
 
+import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
+import ru.hse.homework4.Mapper;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,5 +30,27 @@ class LuluMapperTest {
 
     @Test
     void testWrite() {
+    }
+
+    @Test
+    void fieldToJSONString() {
+        var mapper = new LuluMapper();
+
+        var person = new Person("Mark", 32);
+
+        try {
+            var jsonString = mapper.fieldToJSONString(person, person.getClass().getField("name"));
+            assertEquals("\"name\": \"Mark\"", jsonString);
+        } catch (NoSuchFieldException e) {
+            fail();
+        }
+
+        try {
+            var jsonString = mapper.fieldToJSONString(person, person.getClass().getDeclaredField("age"));
+            System.out.println(jsonString);
+            assertEquals("\"age\": \"32\"", jsonString);
+        } catch (NoSuchFieldException e) {
+            fail();
+        }
     }
 }
