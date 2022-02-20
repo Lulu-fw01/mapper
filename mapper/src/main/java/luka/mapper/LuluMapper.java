@@ -158,10 +158,16 @@ public class LuluMapper implements Mapper {
                 // Check property name.
                 result.append(String.format("\"%s\": \"%s\"", field.getName(), value));
             } else {
-                // Collection, big class.
+                // Collection, another big class, datas.
             }
         } catch (IllegalAccessException ignored) {
         }
+
+        return result.toString();
+    }
+
+    String fieldNameToJsonString(Field field) {
+        StringBuilder result = new StringBuilder("\"");
 
         return result.toString();
     }
@@ -176,20 +182,13 @@ public class LuluMapper implements Mapper {
     }
     */
 
-    String dateToString(Object object, Field field) {
+    static String dateToString(Object object, Field field) {
         StringBuilder result = new StringBuilder("");
 
         return result.toString();
     }
 
-
-    String fieldNameToJsonString(Field field) {
-        StringBuilder result = new StringBuilder("\"");
-
-        return result.toString();
-    }
-
-    private boolean isWrapper(Class<?> clazz) {
+    private static boolean isWrapper(Class<?> clazz) {
         if (clazz == null) {
             return false;
         }
