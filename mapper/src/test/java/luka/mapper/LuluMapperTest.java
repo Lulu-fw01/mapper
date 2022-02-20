@@ -39,14 +39,14 @@ class LuluMapperTest {
         var person = new Person("Mark", 32);
 
         try {
-            var jsonString = mapper.fieldToJSONString(person, person.getClass().getField("name"));
+            var jsonString = mapper.fieldToJsonString(person, person.getClass().getField("name"));
             assertEquals("\"name\": \"Mark\"", jsonString);
         } catch (NoSuchFieldException e) {
             fail();
         }
 
         try {
-            var jsonString = mapper.fieldToJSONString(person, person.getClass().getDeclaredField("age"));
+            var jsonString = mapper.fieldToJsonString(person, person.getClass().getDeclaredField("age"));
             System.out.println(jsonString);
             assertEquals("\"age\": \"32\"", jsonString);
         } catch (NoSuchFieldException e) {

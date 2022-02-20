@@ -136,20 +136,19 @@ public class LuluMapper implements Mapper {
         var objFields = objClass.getFields();
         for (var field : objFields) {
             if (!field.isAnnotationPresent(Ignored.class)) {
-                var jsonString = fieldToJSONString(object, field);
+                var jsonString = fieldToJsonString(object, field);
                 result.append(String.format("%s,", jsonString));
             }
         }
 
+        result.append("}");
         return result.toString();
     }
 
-    String fieldToJSONString(Object object, Field field) {
+    String fieldToJsonString(Object object, Field field) {
         StringBuilder result = new StringBuilder("");
 
         String value = "";
-
-        // Check if class is primitive, string or Wrapper(not check!!!!!).
 
         try {
             // Primitive, wrapper or String.
@@ -159,11 +158,33 @@ public class LuluMapper implements Mapper {
                 // Check property name.
                 result.append(String.format("\"%s\": \"%s\"", field.getName(), value));
             } else {
-                // Collection, big class
+                // Collection, big class.
             }
         } catch (IllegalAccessException ignored) {
         }
 
+        return result.toString();
+    }
+
+    /*
+    String collectionToString() {
+
+    }
+
+    String classToString(Object object) {
+
+    }
+    */
+
+    String dateToString(Object object, Field field) {
+        StringBuilder result = new StringBuilder("");
+
+        return result.toString();
+    }
+
+
+    String fieldNameToJsonString(Field field) {
+        StringBuilder result = new StringBuilder("\"");
 
         return result.toString();
     }
