@@ -12,9 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalAdjuster;
 
 public class LuluMapper implements Mapper {
     /**
@@ -154,16 +151,24 @@ public class LuluMapper implements Mapper {
     String fieldToJsonString(Object object, Field field) {
         StringBuilder result = new StringBuilder("");
 
-        String value = "";
-
         try {
             // Primitive, wrapper or String.
             if (field.getType() == String.class || field.getType().isPrimitive() || isWrapper(field.getType())) {
                 field.setAccessible(true);
-                value = field.get(object).toString();
+                // Get value in string format.
+                var value = field.get(object).toString();
                 result.append(String.format("%s: \"%s\"", Converter.fieldNameToJsonString(field), value));
             } else {
-                // Collection, another big class, datas.
+                var type = field.getType();
+
+                // LocalDate, LocalTime or LocalDateTime.
+                if (LocalDate.class.equals(type) || LocalTime.class.equals(type) || LocalDateTime.class.equals(type)) {
+                    result.append(Converter.dateToJsonString(object, field));
+                } else if() {
+
+                }
+
+                // Collection, another big class.
             }
         } catch (IllegalAccessException ignored) {
         }
