@@ -135,6 +135,7 @@ public class LuluMapper implements Mapper {
             return "";
         }
 
+        // TODO maybe to another function.
         StringBuilder result = new StringBuilder("{");
 
         var objClass = object.getClass();
@@ -160,7 +161,6 @@ public class LuluMapper implements Mapper {
             if (field.getType() == String.class || field.getType().isPrimitive() || isWrapper(field.getType())) {
                 field.setAccessible(true);
                 value = field.get(object).toString();
-                // Check property name.
                 result.append(String.format("%s: \"%s\"", Converter.fieldNameToJsonString(field), value));
             } else {
                 // Collection, another big class, datas.
