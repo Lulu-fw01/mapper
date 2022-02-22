@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ConverterTest {
 
     @Test
-    void fieldNameToJsonString() {
+    void fieldNameToJson() {
 
         var person = new Person("Mark", 32);
 
@@ -33,12 +33,30 @@ class ConverterTest {
 
         try {
             var field = Person.class.getDeclaredField("date");
-            var jsonString = Converter.dateToJson(person, field);
-            assertEquals("\"myLocalDateTime\": \"2001-12-13 23:59:59\"", jsonString);
+            var jsonString = Converter.dateValueToJson(person, field);
+            assertEquals("\"2001-12-13 23:59:59\"", jsonString);
 
         } catch (NoSuchFieldException e) {
             fail();
         }
     }
+
+    @Test
+    void fieldToJson() {
+
+        var person = new Person("Mark", 32);
+
+        try {
+            var jsonString = Converter.fieldToJson(person, person.getClass().getField("name"));
+            assertEquals("\"name\": \"Mark\"", jsonString);
+
+            jsonString = Converter.fieldToJson(person, person.getClass().getDeclaredField("age"));
+            assertEquals("\"age\": \"32\"", jsonString);
+        } catch (NoSuchFieldException e) {
+            fail();
+        }
+
+    }
+
 
 }

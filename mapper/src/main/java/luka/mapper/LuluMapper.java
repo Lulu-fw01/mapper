@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Set;
 
 public class LuluMapper implements Mapper {
     /**
@@ -128,27 +130,12 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public String writeToString(Object object) {
-        if (object == null || !object.getClass().isAnnotationPresent(Exported.class)) {
-            return "";
-        }
 
-        // TODO maybe to another function.
-        StringBuilder result = new StringBuilder("{");
-
-        var objClass = object.getClass();
-        var objFields = objClass.getFields();
-        for (var field : objFields) {
-            if (!field.isAnnotationPresent(Ignored.class)) {
-                var jsonString = fieldToJsonString(object, field);
-                result.append(String.format("%s,", jsonString));
-            }
-        }
-
-        result.append("}");
-        return result.toString();
+        return Converter.objectToJson(object);
     }
 
-    String fieldToJsonString(Object object, Field field) {
+
+    /*String collectionElemToJsonString(Object object, Field field) {
         StringBuilder result = new StringBuilder("");
 
         try {
@@ -157,14 +144,14 @@ public class LuluMapper implements Mapper {
                 field.setAccessible(true);
                 // Get value in string format.
                 var value = field.get(object).toString();
-                result.append(String.format("%s: \"%s\"", Converter.fieldNameToJsonString(field), value));
+                result.append(String.format("\"%s\"", value));
             } else {
                 var type = field.getType();
 
                 // LocalDate, LocalTime or LocalDateTime.
                 if (LocalDate.class.equals(type) || LocalTime.class.equals(type) || LocalDateTime.class.equals(type)) {
-                    result.append(Converter.dateToJsonString(object, field));
-                } else if() {
+                    result.append(Converter.dateToJson(object, field));
+                } else if(List.class.equals(type) || Set.class.equals(type)) {
 
                 }
 
@@ -174,20 +161,7 @@ public class LuluMapper implements Mapper {
         }
 
         return result.toString();
-    }
-
-
-
-    private static boolean isWrapper(Class<?> clazz) {
-        if (clazz == null) {
-            return false;
-        }
-
-        return clazz == Boolean.class || clazz == Character.class ||
-                clazz == Byte.class || clazz == Short.class ||
-                clazz == Integer.class || clazz == Long.class ||
-                clazz == Float.class || clazz == Double.class;
-    }
+    }*/
 
     /**
      * Сохраняет {@code object} в {@link OutputStream}.

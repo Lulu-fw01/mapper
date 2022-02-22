@@ -34,23 +34,6 @@ class LuluMapperTest {
     void testWrite() {
     }
 
-    @Test
-    void fieldToJSONString() {
-        var mapper = new LuluMapper();
-
-        var person = new Person("Mark", 32);
-
-        try {
-            var jsonString = mapper.fieldToJsonString(person, person.getClass().getField("name"));
-            assertEquals("\"name\": \"Mark\"", jsonString);
-
-            jsonString = mapper.fieldToJsonString(person, person.getClass().getDeclaredField("age"));
-            assertEquals("\"age\": \"32\"", jsonString);
-        } catch (NoSuchFieldException e) {
-            fail();
-        }
-
-    }
 
 
 
