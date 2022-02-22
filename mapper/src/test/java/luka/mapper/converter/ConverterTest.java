@@ -16,10 +16,10 @@ class ConverterTest {
         var person = new Person("Mark", 32);
 
         try {
-            var jsonString = Converter.fieldNameToJsonString(person.getClass().getDeclaredField("lastName"));
+            var jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("lastName"));
             assertEquals("\"surname\"", jsonString);
 
-            jsonString = Converter.fieldNameToJsonString(person.getClass().getDeclaredField("name"));
+            jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("name"));
             assertEquals("\"name\"", jsonString);
         } catch (NoSuchFieldException e) {
             fail();
@@ -27,13 +27,13 @@ class ConverterTest {
     }
 
     @Test
-    void dateToJsonString() {
+    void dateToJson() {
         var person = new Person("Mark", 32);
         person.date = LocalDateTime.of(2001, 12, 13, 23, 59, 59);
 
         try {
             var field = Person.class.getDeclaredField("date");
-            var jsonString = Converter.dateToJsonString(person, field);
+            var jsonString = Converter.dateToJson(person, field);
             assertEquals("\"myLocalDateTime\": \"2001-12-13 23:59:59\"", jsonString);
 
         } catch (NoSuchFieldException e) {
