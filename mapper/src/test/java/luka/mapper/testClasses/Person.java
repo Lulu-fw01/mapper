@@ -4,6 +4,7 @@ import ru.hse.homework4.DateFormat;
 import ru.hse.homework4.PropertyName;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 public class Person {
 
@@ -22,4 +23,14 @@ public class Person {
     @PropertyName(value = "myLocalDateTime")
     @DateFormat("uuuu-MM-dd HH:mm:ss")
     public LocalDateTime date;
+
+
+    public ArrayList<Integer> manyNumbers;
+
+    @PropertyName(value = "chars")
+    private ArrayList<Character> manyCharacters;
+
+    public void setManyCharacters(ArrayList<Character> chars) {
+        manyCharacters = chars;
+    }
 }
