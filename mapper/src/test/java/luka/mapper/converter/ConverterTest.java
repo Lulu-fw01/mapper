@@ -1,6 +1,7 @@
 package luka.mapper.converter;
 
 import luka.mapper.LuluMapper;
+import luka.mapper.testClasses.Gender;
 import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
 
@@ -103,6 +104,14 @@ class ConverterTest {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             fail();
         }
+    }
+
+    @Test
+    void enumValueToJson() {
+        Gender gender = Gender.MALE;
+
+        var jsonString = Converter.enumValueToJson(gender);
+        assertEquals("\"MALE\"", jsonString);
     }
 
 }

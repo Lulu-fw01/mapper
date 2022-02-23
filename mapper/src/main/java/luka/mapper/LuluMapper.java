@@ -130,38 +130,8 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public String writeToString(Object object) {
-
         return Converter.objectToJson(object);
     }
-
-
-    /*String collectionElemToJsonString(Object object, Field field) {
-        StringBuilder result = new StringBuilder("");
-
-        try {
-            // Primitive, wrapper or String.
-            if (field.getType() == String.class || field.getType().isPrimitive() || isWrapper(field.getType())) {
-                field.setAccessible(true);
-                // Get value in string format.
-                var value = field.get(object).toString();
-                result.append(String.format("\"%s\"", value));
-            } else {
-                var type = field.getType();
-
-                // LocalDate, LocalTime or LocalDateTime.
-                if (LocalDate.class.equals(type) || LocalTime.class.equals(type) || LocalDateTime.class.equals(type)) {
-                    result.append(Converter.dateToJson(object, field));
-                } else if(List.class.equals(type) || Set.class.equals(type)) {
-
-                }
-
-                // Collection, another big class.
-            }
-        } catch (IllegalAccessException ignored) {
-        }
-
-        return result.toString();
-    }*/
 
     /**
      * Сохраняет {@code object} в {@link OutputStream}.
