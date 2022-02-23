@@ -11,9 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Converter {
 
@@ -26,6 +24,8 @@ public class Converter {
         if (object == null || !object.getClass().isAnnotationPresent(Exported.class)) {
             return "";
         }
+
+        HashSet<String> fieldNames = new HashSet<>();
         // TODO Cycle checking.
         // TODO null checking.
         StringBuilder result = new StringBuilder("{");
@@ -41,7 +41,7 @@ public class Converter {
                 Object fieldVal;
                 try {
                     fieldVal = objFields[i].get(object);
-                    var jsonString = fieldToJson(fieldVal, objFields[i]);
+                    var jsonString = fieldToJson(fieldVal, objFields[i], fieldNames);
                     result.append(String.format("%s%s", jsonString, i == objFields.length - 1 ? "" : ", "));
                 } catch (IllegalAccessException ignored) {
                 }
@@ -58,9 +58,9 @@ public class Converter {
      * @param object object which value should be returned in Json format.
      * @param field  field which contains object from first param.
      */
-    public static String fieldToJson(Object object, Field field) {
+    public static String fieldToJson(Object object, Field field, HashSet<String> fieldNames) {
 
-        return String.format("%s: %s", Converter.fieldNameToJson(field), fieldValueToJson(object, field));
+        return String.format("%s: %s", Converter.fieldNameToJson(field, fieldNames), fieldValueToJson(object, field));
     }
 
     /**
@@ -68,16 +68,23 @@ public class Converter {
      *
      * @param field - object of {@link Field} which should be converted into Json name.
      */
-    public static String fieldNameToJson(Field field) {
+    public static String fieldNameToJson(Field field, HashSet<String> fieldNames) {
         StringBuilder result = new StringBuilder("\"");
-
+        String name = "";
         if (field.isAnnotationPresent(PropertyName.class)) {
-            var annotation = field.getAnnotation(PropertyName.class);
-            // TODO maybe need check value in PropertyName.
-            result.append(String.format("%s\"", annotation.value()));
+            name = field.getAnnotation(PropertyName.class).value();
+            if (fieldNames.contains(name)) {
+                throw new SameFieldNamesException(String.format("Property name \"%s\" has been already used.", name), field);
+            }
         } else {
-            result.append(String.format("%s\"", field.getName()));
+            name = field.getName();
+            if (fieldNames.contains(name)) {
+                throw new SameFieldNamesException(String.format("Field name \"%s\" has been already used.", name), field);
+            }
         }
+
+        fieldNames.add(name);
+        result.append(String.format("%s\"", name));
         return result.toString();
     }
 

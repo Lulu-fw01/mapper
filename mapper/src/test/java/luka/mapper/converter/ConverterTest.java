@@ -10,6 +10,7 @@ import java.beans.VetoableChangeSupport;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Vector;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,16 +49,37 @@ class ConverterTest {
     void fieldNameToJson() {
 
         var person = initPerson();
-
+        HashSet<String> fieldNames = new HashSet<>();
+        String jsonString;
         try {
-            var jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("lastName"));
+            jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("lastName"), fieldNames);
             assertEquals("\"surname\"", jsonString);
 
-            jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("name"));
+            jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("name"), fieldNames);
             assertEquals("\"name\"", jsonString);
         } catch (NoSuchFieldException e) {
             fail();
         }
+
+        try {
+            jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("name"), fieldNames);
+            fail();
+        } catch (NoSuchFieldException e) {
+            fail();
+        } catch (SameFieldNamesException e) {
+            assertEquals("Field name \"name\" has been already used.", e.getMessage());
+        }
+
+        try {
+            jsonString = Converter.fieldNameToJson(person.getClass().getDeclaredField("lastName"), fieldNames);
+            fail();
+        } catch (NoSuchFieldException e) {
+            fail();
+        } catch (SameFieldNamesException e) {
+            assertEquals("Property name \"surname\" has been already used.", e.getMessage());
+        }
+
+
     }
 
     @Test
@@ -77,23 +99,23 @@ class ConverterTest {
     void fieldToJson() {
 
         var person = initPerson();
-
+        HashSet<String> fieldNames = new HashSet<>();
         try {
-            var jsonString = Converter.fieldToJson(person.name, person.getClass().getField("name"));
+            var jsonString = Converter.fieldToJson(person.name, person.getClass().getField("name"), fieldNames);
             assertEquals("\"name\": \"Mark\"", jsonString);
 
             var field = person.getClass().getDeclaredField("age");
             field.setAccessible(true);
-            jsonString = Converter.fieldToJson(field.get(person), field);
+            jsonString = Converter.fieldToJson(field.get(person), field, fieldNames);
             assertEquals("\"age\": \"32\"", jsonString);
 
 
-            jsonString = Converter.fieldToJson(person.manyNumbers, person.getClass().getField("manyNumbers"));
+            jsonString = Converter.fieldToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), fieldNames);
             assertEquals("\"manyNumbers\": [\"1\", \"5\", \"8\"]", jsonString);
 
             field = person.getClass().getDeclaredField("manyCharacters");
             field.setAccessible(true);
-            jsonString = Converter.fieldToJson((Collection<?>) field.get(person), field);
+            jsonString = Converter.fieldToJson((Collection<?>) field.get(person), field, fieldNames);
             assertEquals("\"chars\": [\"t\", \"6\", \"g\"]", jsonString);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             fail();
