@@ -11,13 +11,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class Converter {
-
 
     /**
      * Convert object to Json string.
@@ -29,10 +27,11 @@ public class Converter {
             return "";
         }
         // TODO Cycle checking.
+        // TODO null checking.
         StringBuilder result = new StringBuilder("{");
 
         var objClass = object.getClass();
-        var objFields = objClass.getFields();
+        var objFields = objClass.getDeclaredFields();
         for (int i = 0; i < objFields.length; ++i) {
             if (!objFields[i].isAnnotationPresent(Ignored.class) ||
                     !objFields[i].isSynthetic() ||
@@ -55,19 +54,19 @@ public class Converter {
 
     /**
      * Convert field to Json string.
+     *
+     * @param object object which value should be returned in Json format.
+     * @param field  field which contains object from first param.
      */
     public static String fieldToJson(Object object, Field field) {
-        StringBuilder result = new StringBuilder("");
 
-        result.append(String.format("%s: %s", Converter.fieldNameToJson(field), fieldValueToJson(object, field)));
-
-        return result.toString();
+        return String.format("%s: %s", Converter.fieldNameToJson(field), fieldValueToJson(object, field));
     }
 
     /**
      * Convert field name to json string.
      *
-     * @param field - object of {@link Field} which should be converted into json name.
+     * @param field - object of {@link Field} which should be converted into Json name.
      */
     public static String fieldNameToJson(Field field) {
         StringBuilder result = new StringBuilder("\"");
@@ -133,7 +132,6 @@ public class Converter {
      * @param field  field which contains object from first param.
      */
     public static String dateValueToJson(Object object, Field field) {
-        // TODO add comments.
         StringBuilder result = new StringBuilder("");
         field.setAccessible(true);
 

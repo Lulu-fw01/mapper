@@ -4,6 +4,7 @@ import luka.mapper.LuluMapper;
 import luka.mapper.testClasses.Gender;
 import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Convert;
 
 import java.beans.VetoableChangeSupport;
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ class ConverterTest {
 
     Person initPerson() {
         var person = new Person("Mark", 32);
+        person.lastName = "Zuck";
         person.date = LocalDateTime.of(2001, 12, 13, 23, 59, 59);
         person.manyNumbers = new ArrayList<>();
         person.manyNumbers.add(1);
@@ -30,6 +32,17 @@ class ConverterTest {
         person.setManyCharacters(chars);
         return person;
     }
+
+    @Test
+    void objectToJson() {
+        var person = initPerson();
+        var jsonString = Converter.objectToJson(person);
+
+        assertEquals("{\"name\": \"Mark\", \"age\": \"32\"," +
+                " \"surname\": \"Zuck\", \"myLocalDateTime\": \"2001-12-13 23:59:59\"," +
+                " \"manyNumbers\": [\"1\", \"5\", \"8\"], \"chars\": [\"t\", \"6\", \"g\"]}", jsonString);
+    }
+
 
     @Test
     void fieldNameToJson() {

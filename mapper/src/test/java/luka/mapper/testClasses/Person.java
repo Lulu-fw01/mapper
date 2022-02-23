@@ -1,11 +1,13 @@
 package luka.mapper.testClasses;
 
 import ru.hse.homework4.DateFormat;
+import ru.hse.homework4.Exported;
 import ru.hse.homework4.PropertyName;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+@Exported
 public class Person {
 
     public Person(String name, int age) {
@@ -23,7 +25,6 @@ public class Person {
     @PropertyName(value = "myLocalDateTime")
     @DateFormat("uuuu-MM-dd HH:mm:ss")
     public LocalDateTime date;
-
 
     public ArrayList<Integer> manyNumbers;
 
