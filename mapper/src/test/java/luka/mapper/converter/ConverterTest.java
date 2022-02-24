@@ -1,17 +1,14 @@
 package luka.mapper.converter;
 
-import luka.mapper.LuluMapper;
+import luka.mapper.converter.exceptions.SameFieldNamesException;
 import luka.mapper.testClasses.Gender;
 import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Convert;
 
-import java.beans.VetoableChangeSupport;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Vector;
 
 import static org.junit.jupiter.api.Assertions.*;
 

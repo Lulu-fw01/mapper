@@ -1,5 +1,6 @@
 package luka.mapper.converter;
 
+import luka.mapper.converter.exceptions.SameFieldNamesException;
 import ru.hse.homework4.DateFormat;
 import ru.hse.homework4.Exported;
 import ru.hse.homework4.Ignored;
@@ -67,6 +68,8 @@ public class Converter {
      * Convert field name to json string.
      *
      * @param field - object of {@link Field} which should be converted into Json name.
+     *
+     * @throws SameFieldNamesException if field name has been used before in class.
      */
     public static String fieldNameToJson(Field field, HashSet<String> fieldNames) {
         StringBuilder result = new StringBuilder("\"");
@@ -74,11 +77,13 @@ public class Converter {
         if (field.isAnnotationPresent(PropertyName.class)) {
             name = field.getAnnotation(PropertyName.class).value();
             if (fieldNames.contains(name)) {
+                // If this field name has been sed throw exception.
                 throw new SameFieldNamesException(String.format("Property name \"%s\" has been already used.", name), field);
             }
         } else {
             name = field.getName();
             if (fieldNames.contains(name)) {
+                // If this field name has been sed throw exception.
                 throw new SameFieldNamesException(String.format("Field name \"%s\" has been already used.", name), field);
             }
         }

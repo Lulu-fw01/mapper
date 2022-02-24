@@ -1,4 +1,4 @@
-package luka.mapper.converter;
+package luka.mapper.converter.exceptions;
 
 import java.lang.reflect.Field;
 
