@@ -10,6 +10,10 @@ public class CycleException extends RuntimeException {
 
     Object object;
 
+    public Object getObject() {
+        return object;
+    }
+
     /**
      * @param message message.
      * @param object which produces cycle.

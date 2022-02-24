@@ -1,11 +1,12 @@
 package luka.mapper.converter;
 
+import luka.mapper.exceptions.CycleException;
 import luka.mapper.exceptions.SameFieldNamesException;
-import luka.mapper.testClasses.Gender;
-import luka.mapper.testClasses.Person;
-import luka.mapper.testClasses.SomeClass;
+import luka.mapper.testClasses.*;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,6 +58,25 @@ class ConverterTest {
         jsonString = Converter.objectToJson(someClass);
         assertEquals("{\"someString\": \"this is some string.\", \"link\": {\"someString\": \"this is link\"}}", jsonString);
 
+        someClass.setLink(someClass);
+        try {
+            jsonString = Converter.objectToJson(someClass);
+        } catch (CycleException e) {
+            assertEquals(e.getObject(), someClass);
+        }
+
+        someClass = initComeClass();
+        someClass.getLink().setLink(someClass);
+        try {
+            jsonString = Converter.objectToJson(someClass);
+        } catch (CycleException e) {
+            assertEquals(e.getObject(), someClass);
+        }
+
+        Integer integer = 1;
+        jsonString = Converter.objectToJson(integer);
+        assertEquals("", jsonString);
+
     }
 
 
@@ -100,11 +120,21 @@ class ConverterTest {
     @Test
     void dateToJson() {
         var person = initPerson();
-
+        Field field;
         try {
-            var field = Person.class.getDeclaredField("date");
+            field = Person.class.getDeclaredField("date");
             var jsonString = Converter.dateValueToJson(person.date, field);
             assertEquals("\"2001-12-13 23:59:59\"", jsonString);
+        } catch (NoSuchFieldException e) {
+            fail();
+        }
+
+        var dateTestC = new DateTestClass();
+        dateTestC.testLocalDate = LocalDate.of(2001, 12, 13);
+        try {
+            field = DateTestClass.class.getDeclaredField("testLocalDate");
+            var jsonString = Converter.dateValueToJson(dateTestC.testLocalDate, field);
+            assertEquals("\"2001-12-13\"", jsonString);
         } catch (NoSuchFieldException e) {
             fail();
         }
@@ -161,8 +191,9 @@ class ConverterTest {
         var person = initPerson();
         HashSet<Object> usedClasses = new HashSet<>();
 
+        String jsonString;
         try {
-            var jsonString = Converter.collectionValueToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), usedClasses);
+            jsonString = Converter.collectionValueToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), usedClasses);
             assertEquals("[\"1\", \"5\", \"8\"]", jsonString);
 
             var field = person.getClass().getDeclaredField("manyCharacters");

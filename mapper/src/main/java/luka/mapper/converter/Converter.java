@@ -21,6 +21,7 @@ public class Converter {
      * @param object - object that should be written as Json string.
      */
     public static String objectToJson(Object object) {
+        // TODO Maybe change to ArrayList.
         HashSet<Object> usedClasses = new HashSet<>();
         return objectToJson(object, usedClasses);
     }
@@ -43,8 +44,7 @@ public class Converter {
 
         HashSet<String> fieldNames = new HashSet<>();
         usedClasses.add(object);
-        // TODO Cycle checking.
-        // TODO null checking.
+
         // Result string.
         StringBuilder result = new StringBuilder("{");
         var objClass = object.getClass();
@@ -155,12 +155,9 @@ public class Converter {
 
         } else if (type.isEnum()) {
             // Enum.
+            // TODO add tests.
             result.append(enumValueToJson(object));
         } else {
-            if (!object.getClass().isAnnotationPresent(Exported.class)) {
-                // TODO throw smth.
-                return "class";
-            }
             result.append(objectToJson(object, new HashSet<>(usedClasses)));
         }
 
@@ -172,6 +169,7 @@ public class Converter {
      *
      * @param object object which value should be returned in Json format.
      * @param field  field which contains object from first param.
+     * @throws IllegalArgumentException if wrong date format.
      */
     public static String dateValueToJson(Object object, Field field) {
         StringBuilder result = new StringBuilder("");
@@ -180,9 +178,8 @@ public class Converter {
         StringBuilder stringDate = new StringBuilder("");
         if (field.isAnnotationPresent(DateFormat.class)) {
             var annotation = field.getAnnotation(DateFormat.class);
-            // TODO here can be exceptions.
             var formatter = DateTimeFormatter.ofPattern(annotation.value());
-
+            // TODO add tests.
             if (LocalDate.class.equals(object.getClass())) {
                 var date = (LocalDate) object;
                 stringDate.append(date.format(formatter));
@@ -193,7 +190,6 @@ public class Converter {
                 var date = (LocalDateTime) object;
                 stringDate.append(date.format(formatter));
             }
-            // TODO check if not correct argument.
         } else {
             stringDate.append(object.toString());
         }
@@ -210,15 +206,17 @@ public class Converter {
      * @param field      field which contains object from first param.
      */
     public static String collectionValueToJson(Collection<?> collection, Field field, HashSet<Object> usedClasses) {
+
         if (usedClasses.contains(collection)) {
             throw new CycleException("Cycle was detected.", collection);
         }
+
+        usedClasses.add(collection);
         StringBuilder result = new StringBuilder("[");
         var arr = collection.toArray();
         for (int i = 0; i < arr.length; ++i) {
             result.append(String.format("%s%s", fieldValueToJson(arr[i], field, new HashSet<>(usedClasses)), i == arr.length - 1 ? "" : ", "));
         }
-        // TODO cycle checking.
         result.append("]");
         return result.toString();
     }
