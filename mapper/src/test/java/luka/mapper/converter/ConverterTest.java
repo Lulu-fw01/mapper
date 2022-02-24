@@ -97,22 +97,23 @@ class ConverterTest {
 
         var person = initPerson();
         HashSet<String> fieldNames = new HashSet<>();
+        HashSet<Object> usedClasses = new HashSet<>();
         try {
-            var jsonString = Converter.fieldToJson(person.name, person.getClass().getField("name"), fieldNames);
+            var jsonString = Converter.fieldToJson(person.name, person.getClass().getField("name"), fieldNames, usedClasses);
             assertEquals("\"name\": \"Mark\"", jsonString);
 
             var field = person.getClass().getDeclaredField("age");
             field.setAccessible(true);
-            jsonString = Converter.fieldToJson(field.get(person), field, fieldNames);
+            jsonString = Converter.fieldToJson(field.get(person), field, fieldNames, usedClasses);
             assertEquals("\"age\": \"32\"", jsonString);
 
 
-            jsonString = Converter.fieldToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), fieldNames);
+            jsonString = Converter.fieldToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), fieldNames, usedClasses);
             assertEquals("\"manyNumbers\": [\"1\", \"5\", \"8\"]", jsonString);
 
             field = person.getClass().getDeclaredField("manyCharacters");
             field.setAccessible(true);
-            jsonString = Converter.fieldToJson((Collection<?>) field.get(person), field, fieldNames);
+            jsonString = Converter.fieldToJson((Collection<?>) field.get(person), field, fieldNames, usedClasses);
             assertEquals("\"chars\": [\"t\", \"6\", \"g\"]", jsonString);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             fail();
@@ -123,14 +124,15 @@ class ConverterTest {
     @Test
     void collectionValueToJson() {
         var person = initPerson();
+        HashSet<Object> usedClasses = new HashSet<>();
 
         try {
-            var jsonString = Converter.collectionValueToJson(person.manyNumbers, person.getClass().getField("manyNumbers"));
+            var jsonString = Converter.collectionValueToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), usedClasses);
             assertEquals("[\"1\", \"5\", \"8\"]", jsonString);
 
             var field = person.getClass().getDeclaredField("manyCharacters");
             field.setAccessible(true);
-            jsonString = Converter.collectionValueToJson((Collection<?>) field.get(person), field);
+            jsonString = Converter.collectionValueToJson((Collection<?>) field.get(person), field, usedClasses);
             assertEquals("[\"t\", \"6\", \"g\"]", jsonString);
 
         } catch (NoSuchFieldException | IllegalAccessException e) {

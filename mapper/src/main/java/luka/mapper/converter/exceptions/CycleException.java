@@ -6,7 +6,7 @@ package luka.mapper.converter.exceptions;
  * be serialized contains cycle.
  *
  * */
-public class CycleException extends RuntimeException{
+public class CycleException extends RuntimeException {
 
     Object object;
 
@@ -14,7 +14,7 @@ public class CycleException extends RuntimeException{
      * @param message message.
      * @param object which produces cycle.
      * */
-    CycleException(String message, Object object) {
+    public CycleException(String message, Object object) {
         super(message);
         this.object = object;
     }

@@ -1,5 +1,6 @@
 package luka.mapper.converter;
 
+import luka.mapper.converter.exceptions.CycleException;
 import luka.mapper.converter.exceptions.SameFieldNamesException;
 import ru.hse.homework4.DateFormat;
 import ru.hse.homework4.Exported;
@@ -16,19 +17,38 @@ import java.util.*;
 
 public class Converter {
 
+
     /**
      * Convert object to Json string.
      *
      * @param object - object that should be written as Json string.
      */
     public static String objectToJson(Object object) {
+        HashSet<Object> usedClasses = new HashSet<>();
+        return objectToJson(object, usedClasses);
+    }
+
+    /**
+     * Convert object to Json string.
+     *
+     * @param object object that should be written as Json string.
+     * @param usedClasses set of classes which were used before.
+     */
+    public static String objectToJson(Object object, HashSet<Object> usedClasses) {
+        // Maybe move this if.
         if (object == null || !object.getClass().isAnnotationPresent(Exported.class)) {
             return "";
         }
 
+        if (usedClasses.contains(object)) {
+            throw new CycleException("Cycle was detected.", object);
+        }
+
         HashSet<String> fieldNames = new HashSet<>();
+        usedClasses.add(object);
         // TODO Cycle checking.
         // TODO null checking.
+        // Result string.
         StringBuilder result = new StringBuilder("{");
 
         var objClass = object.getClass();
@@ -42,7 +62,7 @@ public class Converter {
                 Object fieldVal;
                 try {
                     fieldVal = objFields[i].get(object);
-                    var jsonString = fieldToJson(fieldVal, objFields[i], fieldNames);
+                    var jsonString = fieldToJson(fieldVal, objFields[i], fieldNames,  new HashSet<>(usedClasses));
                     result.append(String.format("%s%s", jsonString, i == objFields.length - 1 ? "" : ", "));
                 } catch (IllegalAccessException ignored) {
                 }
@@ -59,9 +79,9 @@ public class Converter {
      * @param object object which value should be returned in Json format.
      * @param field  field which contains object from first param.
      */
-    public static String fieldToJson(Object object, Field field, HashSet<String> fieldNames) {
+    public static String fieldToJson(Object object, Field field, HashSet<String> fieldNames, HashSet<Object> usedClasses) {
 
-        return String.format("%s: %s", Converter.fieldNameToJson(field, fieldNames), fieldValueToJson(object, field));
+        return String.format("%s: %s", Converter.fieldNameToJson(field, fieldNames), fieldValueToJson(object, field, usedClasses));
     }
 
     /**
@@ -99,7 +119,7 @@ public class Converter {
      * @param object object which value should be returned in Json format.
      * @param field  field which contains object from first param.
      */
-    public static String fieldValueToJson(Object object, Field field) {
+    public static String fieldValueToJson(Object object, Field field, HashSet<Object> usedClasses) {
         StringBuilder result = new StringBuilder("");
 
         var type = object.getClass();
@@ -121,7 +141,7 @@ public class Converter {
             } else {
                 collection = (Set<?>) object;
             }
-            result.append(collectionValueToJson(collection, field));
+            result.append(collectionValueToJson(collection, field, new HashSet<>(usedClasses)));
 
         } else if (type.isEnum()) {
             // Enum.
@@ -131,7 +151,7 @@ public class Converter {
                 // TODO throw smth.
                 return "class";
             }
-            result.append(objectToJson(object));
+            result.append(objectToJson(object, new HashSet<>(usedClasses)));
         }
 
         return result.toString();
@@ -179,11 +199,14 @@ public class Converter {
      * @param collection collection which should be returned in Json format.
      * @param field      field which contains object from first param.
      */
-    public static String collectionValueToJson(Collection<?> collection, Field field) {
+    public static String collectionValueToJson(Collection<?> collection, Field field, HashSet<Object> usedClasses) {
+        if (usedClasses.contains(collection)) {
+            throw new CycleException("Cycle was detected.", collection);
+        }
         StringBuilder result = new StringBuilder("[");
         var arr = collection.toArray();
         for (int i = 0; i < arr.length; ++i) {
-            result.append(String.format("%s%s", fieldValueToJson(arr[i], field), i == arr.length - 1 ? "" : ", "));
+            result.append(String.format("%s%s", fieldValueToJson(arr[i], field, new HashSet<>(usedClasses)), i == arr.length - 1 ? "" : ", "));
         }
         // TODO cycle checking.
         result.append("]");
