@@ -1,4 +1,4 @@
-package luka.mapper.converter.exceptions;
+package luka.mapper.exceptions;
 
 
 /**

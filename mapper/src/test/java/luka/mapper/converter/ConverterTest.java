@@ -1,8 +1,9 @@
 package luka.mapper.converter;
 
-import luka.mapper.converter.exceptions.SameFieldNamesException;
+import luka.mapper.exceptions.SameFieldNamesException;
 import luka.mapper.testClasses.Gender;
 import luka.mapper.testClasses.Person;
+import luka.mapper.testClasses.SomeClass;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -31,6 +32,17 @@ class ConverterTest {
         return person;
     }
 
+    SomeClass initComeClass() {
+        var someClass = new SomeClass();
+        someClass.someString = "this is some string.";
+
+        var someClass2 = new SomeClass();
+        someClass2.someString = "this is link";
+        someClass.setLink(someClass2);
+
+        return someClass;
+    }
+
     @Test
     void objectToJson() {
         var person = initPerson();
@@ -39,6 +51,12 @@ class ConverterTest {
         assertEquals("{\"name\": \"Mark\", \"age\": \"32\"," +
                 " \"surname\": \"Zuck\", \"myLocalDateTime\": \"2001-12-13 23:59:59\"," +
                 " \"manyNumbers\": [\"1\", \"5\", \"8\"], \"chars\": [\"t\", \"6\", \"g\"]}", jsonString);
+
+
+        var someClass = initComeClass();
+        jsonString = Converter.objectToJson(someClass);
+        assertEquals("{\"someString\": \"this is some string.\", \"link\": {\"someString\": \"this is link\"}}", jsonString);
+
     }
 
 
@@ -98,26 +116,43 @@ class ConverterTest {
         var person = initPerson();
         HashSet<String> fieldNames = new HashSet<>();
         HashSet<Object> usedClasses = new HashSet<>();
+        String jsonString;
         try {
-            var jsonString = Converter.fieldToJson(person.name, person.getClass().getField("name"), fieldNames, usedClasses);
+            jsonString = Converter.fieldToJson(person.name, person.getClass().getField("name"), fieldNames, usedClasses, false);
             assertEquals("\"name\": \"Mark\"", jsonString);
 
             var field = person.getClass().getDeclaredField("age");
             field.setAccessible(true);
-            jsonString = Converter.fieldToJson(field.get(person), field, fieldNames, usedClasses);
+            jsonString = Converter.fieldToJson(field.get(person), field, fieldNames, usedClasses, false);
             assertEquals("\"age\": \"32\"", jsonString);
 
 
-            jsonString = Converter.fieldToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), fieldNames, usedClasses);
+            jsonString = Converter.fieldToJson(person.manyNumbers, person.getClass().getField("manyNumbers"), fieldNames, usedClasses, false);
             assertEquals("\"manyNumbers\": [\"1\", \"5\", \"8\"]", jsonString);
 
             field = person.getClass().getDeclaredField("manyCharacters");
             field.setAccessible(true);
-            jsonString = Converter.fieldToJson((Collection<?>) field.get(person), field, fieldNames, usedClasses);
+            jsonString = Converter.fieldToJson((Collection<?>) field.get(person), field, fieldNames, usedClasses, false);
             assertEquals("\"chars\": [\"t\", \"6\", \"g\"]", jsonString);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             fail();
         }
+
+        try {
+            var someClass = initComeClass();
+            someClass.setLink(null);
+
+            jsonString = Converter.fieldToJson(someClass.getLink(), someClass.getClass().getDeclaredField("link"), fieldNames, usedClasses, false);
+            assertEquals("", jsonString);
+
+            jsonString = Converter.fieldToJson(someClass.getLink(), someClass.getClass().getDeclaredField("link"), fieldNames, usedClasses, true);
+            assertEquals("\"link\": null", jsonString);
+
+        } catch (NoSuchFieldException e) {
+            fail();
+        }
+
+
     }
 
 

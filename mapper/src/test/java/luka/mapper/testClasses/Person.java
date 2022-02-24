@@ -10,6 +10,11 @@ import java.util.ArrayList;
 @Exported
 public class Person {
 
+    public Person() {
+        name = "";
+        age = 0;
+    }
+
     public Person(String name, int age) {
         this.name = name;
         this.age = age;

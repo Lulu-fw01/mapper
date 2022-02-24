@@ -1,11 +1,8 @@
 package luka.mapper.converter;
 
-import luka.mapper.converter.exceptions.CycleException;
-import luka.mapper.converter.exceptions.SameFieldNamesException;
-import ru.hse.homework4.DateFormat;
-import ru.hse.homework4.Exported;
-import ru.hse.homework4.Ignored;
-import ru.hse.homework4.PropertyName;
+import luka.mapper.exceptions.CycleException;
+import luka.mapper.exceptions.SameFieldNamesException;
+import ru.hse.homework4.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -31,7 +28,7 @@ public class Converter {
     /**
      * Convert object to Json string.
      *
-     * @param object object that should be written as Json string.
+     * @param object      object that should be written as Json string.
      * @param usedClasses set of classes which were used before.
      */
     public static String objectToJson(Object object, HashSet<Object> usedClasses) {
@@ -50,8 +47,10 @@ public class Converter {
         // TODO null checking.
         // Result string.
         StringBuilder result = new StringBuilder("{");
-
         var objClass = object.getClass();
+
+        boolean includeNull = objClass.getAnnotation(Exported.class).nullHandling() == NullHandling.INCLUDE;
+
         var objFields = objClass.getDeclaredFields();
         for (int i = 0; i < objFields.length; ++i) {
             if (!objFields[i].isAnnotationPresent(Ignored.class) ||
@@ -62,13 +61,18 @@ public class Converter {
                 Object fieldVal;
                 try {
                     fieldVal = objFields[i].get(object);
-                    var jsonString = fieldToJson(fieldVal, objFields[i], fieldNames,  new HashSet<>(usedClasses));
-                    result.append(String.format("%s%s", jsonString, i == objFields.length - 1 ? "" : ", "));
+                    var jsonString = fieldToJson(fieldVal, objFields[i], fieldNames, new HashSet<>(usedClasses), includeNull);
+                    result.append(String.format("%s%s", jsonString, (i == objFields.length - 1 || Objects.equals(jsonString, "")) ? "" : ", "));
                 } catch (IllegalAccessException ignored) {
                 }
             }
         }
 
+        // Remove extra characters.
+        if (result.charAt(result.length() - 2) == ',') {
+            result.deleteCharAt(result.length() - 1);
+            result.deleteCharAt(result.length() - 1);
+        }
         result.append("}");
         return result.toString();
     }
@@ -79,8 +83,15 @@ public class Converter {
      * @param object object which value should be returned in Json format.
      * @param field  field which contains object from first param.
      */
-    public static String fieldToJson(Object object, Field field, HashSet<String> fieldNames, HashSet<Object> usedClasses) {
+    public static String fieldToJson(Object object, Field field, HashSet<String> fieldNames, HashSet<Object> usedClasses, boolean includeNull) {
 
+        if (object == null) {
+            if (includeNull) {
+                return String.format("%s: %s", Converter.fieldNameToJson(field, fieldNames), "null");
+            } else {
+                return "";
+            }
+        }
         return String.format("%s: %s", Converter.fieldNameToJson(field, fieldNames), fieldValueToJson(object, field, usedClasses));
     }
 
@@ -88,7 +99,6 @@ public class Converter {
      * Convert field name to json string.
      *
      * @param field - object of {@link Field} which should be converted into Json name.
-     *
      * @throws SameFieldNamesException if field name has been used before in class.
      */
     public static String fieldNameToJson(Field field, HashSet<String> fieldNames) {
@@ -217,7 +227,7 @@ public class Converter {
      * Convert enum value to Json format.
      *
      * @param object object which value should be returned in Json format.
-     * */
+     */
     public static String enumValueToJson(Object object) {
         StringBuilder result = new StringBuilder("");
         result.append(String.format("\"%s\"", object.toString()));
