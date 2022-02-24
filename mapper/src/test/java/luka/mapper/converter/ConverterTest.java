@@ -7,31 +7,12 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConverterTest {
-
-    Person initPerson() {
-        var person = new Person("Mark", 32);
-        person.lastName = "Zuck";
-        person.date = LocalDateTime.of(2001, 12, 13, 23, 59, 59);
-        person.manyNumbers = new ArrayList<>();
-        person.manyNumbers.add(1);
-        person.manyNumbers.add(5);
-        person.manyNumbers.add(8);
-
-        var chars = new ArrayList<Character>();
-        chars.add('t');
-        chars.add('6');
-        chars.add('g');
-        person.setManyCharacters(chars);
-        return person;
-    }
 
     SomeClass initComeClass() {
         var someClass = new SomeClass();
@@ -46,7 +27,7 @@ class ConverterTest {
 
     @Test
     void objectToJson() {
-        var person = initPerson();
+        var person = Person.initPerson();
         var jsonString = Converter.objectToJson(person);
 
         assertEquals("{\"name\": \"Mark\", \"age\": \"32\"," +
@@ -83,7 +64,7 @@ class ConverterTest {
     @Test
     void fieldNameToJson() {
 
-        var person = initPerson();
+        var person = Person.initPerson();
         HashSet<String> fieldNames = new HashSet<>();
         String jsonString;
         try {
@@ -119,7 +100,7 @@ class ConverterTest {
 
     @Test
     void dateToJson() {
-        var person = initPerson();
+        var person = Person.initPerson();
         Field field;
         try {
             field = Person.class.getDeclaredField("date");
@@ -143,7 +124,7 @@ class ConverterTest {
     @Test
     void fieldToJson() {
 
-        var person = initPerson();
+        var person = Person.initPerson();
         HashSet<String> fieldNames = new HashSet<>();
         HashSet<Object> usedClasses = new HashSet<>();
         String jsonString;
@@ -188,7 +169,7 @@ class ConverterTest {
 
     @Test
     void collectionValueToJson() {
-        var person = initPerson();
+        var person = Person.initPerson();
         HashSet<Object> usedClasses = new HashSet<>();
 
         String jsonString;

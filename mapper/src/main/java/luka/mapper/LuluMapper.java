@@ -3,10 +3,9 @@ package luka.mapper;
 import luka.mapper.converter.Converter;
 import ru.hse.homework4.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 
 public class LuluMapper implements Mapper {
@@ -124,7 +123,15 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public String writeToString(Object object) {
-        return Converter.objectToJson(object);
+
+        if (object.getClass().isRecord()) {
+
+        }
+        var constructors = object.getClass().getConstructors();
+        if (checkPublicClearConstructor(constructors)) {
+            return Converter.objectToJson(object);
+        }
+        return "";
     }
 
     /**
@@ -157,7 +164,7 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public void write(Object object, OutputStream outputStream) throws IOException {
-
+        outputStream.write(writeToString(object).getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -190,6 +197,20 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public void write(Object object, File file) throws IOException {
+        write(object, new FileOutputStream(file));
+    }
 
+    /**
+     * Check if class has standard constructor without parameters.
+     *
+     * */
+    static boolean checkPublicClearConstructor(Constructor<?>[] constructors) {
+        for (var constructor : constructors) {
+            if (constructor.getParameterCount() == 0 && Modifier.isPublic(constructor.getModifiers())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

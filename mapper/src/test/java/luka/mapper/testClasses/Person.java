@@ -39,4 +39,22 @@ public class Person {
     public void setManyCharacters(ArrayList<Character> chars) {
         manyCharacters = chars;
     }
+
+
+    public static Person initPerson() {
+        var person = new Person("Mark", 32);
+        person.lastName = "Zuck";
+        person.date = LocalDateTime.of(2001, 12, 13, 23, 59, 59);
+        person.manyNumbers = new ArrayList<>();
+        person.manyNumbers.add(1);
+        person.manyNumbers.add(5);
+        person.manyNumbers.add(8);
+
+        var chars = new ArrayList<Character>();
+        chars.add('t');
+        chars.add('6');
+        chars.add('g');
+        person.setManyCharacters(chars);
+        return person;
+    }
 }
