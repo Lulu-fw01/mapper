@@ -1,14 +1,17 @@
 package luka.mapper;
 
 import luka.mapper.converter.Converter;
+import luka.mapper.deconverter.Deconverter;
 import ru.hse.homework4.*;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 
 public class LuluMapper implements Mapper {
+
     /**
      * Читает сохранённый экземпляр класса {@code clazz} из строки {@code input}
      * и возвращает восстановленный экземпляр класса {@code clazz}.
@@ -34,6 +37,19 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T readFromString(Class<T> clazz, String input) {
+        var constructors = clazz.getConstructors();
+        if (checkPublicClearConstructor(constructors)) {
+            try {
+                var constructor = clazz.getConstructor();
+                // Crate clear object.
+                var clearObject = constructor.newInstance();
+                Deconverter.getObjectFromString(clearObject, input);
+                return clearObject;
+            } catch (NoSuchMethodException ignored) {
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
         return null;
     }
 
@@ -125,7 +141,7 @@ public class LuluMapper implements Mapper {
     public String writeToString(Object object) {
 
         if (object.getClass().isRecord()) {
-
+            throw new UnsupportedOperationException("Record classes are not supported");
         }
         var constructors = object.getClass().getConstructors();
         if (checkPublicClearConstructor(constructors)) {
