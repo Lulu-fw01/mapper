@@ -236,7 +236,7 @@ public class Converter {
     /**
      * Method which check if class is a wrapper of primitive.
      */
-    private static boolean isWrapper(Class<?> clazz) {
+    public static boolean isWrapper(Class<?> clazz) {
         if (clazz == null) {
             return false;
         }

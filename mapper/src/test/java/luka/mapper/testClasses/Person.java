@@ -24,6 +24,10 @@ public class Person {
 
     private Integer age;
 
+    public Integer getAge() {
+        return age;
+    }
+
     @PropertyName(value = "surname")
     public String lastName;
 
