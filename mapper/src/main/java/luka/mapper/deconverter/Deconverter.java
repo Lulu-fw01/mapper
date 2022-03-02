@@ -52,7 +52,8 @@ public class Deconverter {
             fieldName.deleteCharAt(0);
             fieldName.deleteCharAt(fieldName.length() - 1);
             // Find field with this name or propertyName annotation.
-            var optField = classFields.stream()
+            var optField = classFields
+                    .stream()
                     .filter(elem ->
                             elem.getName().equals(fieldName.toString())
                                     || (elem.isAnnotationPresent(PropertyName.class)
@@ -90,7 +91,18 @@ public class Deconverter {
         var type = field.getType();
         var valBuilder = new StringBuilder(value);
         removeFirstAndLast(valBuilder);
-        field.set(object, Enum.valueOf( type, valBuilder.toString()));
+        var constants = type.getEnumConstants();
+        // Find enum constant with such value.
+        var constant = Arrays
+                .stream(constants)
+                .filter(elem -> elem.toString().equals(valBuilder.toString())).findFirst();
+        if (constant.isPresent()) {
+            try {
+                field.set(object, constant.get());
+            } catch (IllegalAccessException ex) {
+                // TODO add smth.
+            }
+        }
     }
 
 

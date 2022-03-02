@@ -1,5 +1,7 @@
 package luka.mapper.deconverter;
 
+import luka.mapper.testClasses.Gender;
+import luka.mapper.testClasses.Human;
 import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +24,16 @@ class DeconverterTest {
 
     @Test
     void setEnumField() {
+        var human = new Human();
 
+        try {
+            var field = human.getClass().getDeclaredField("gender");
+            field.setAccessible(true);
+            Deconverter.setEnumField(human, field, "\"FEMALE\"");
+            assertEquals(human.getGender(), Gender.FEMALE);
+        } catch (NoSuchFieldException e) {
+            fail();
+        }
     }
 
 }
