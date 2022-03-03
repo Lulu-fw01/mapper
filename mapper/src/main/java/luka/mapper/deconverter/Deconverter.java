@@ -69,91 +69,83 @@ public class Deconverter {
                 continue;
             }
             // Set field value.
-            setField(object, field, nameVal[1]);
+            try {
+                field.set(object, getValueFromString(field, field.getType(), nameVal[1]));
+            } catch (IllegalAccessException e) {
+
+            }
         }
     }
 
-    public static void setField(Object object, Field field, String value) {
-        var type = field.getType();
+    public static Object getValueFromString(Field field, Class<?> type, String value) {
         field.setAccessible(true);
 
         if (String.class.equals(type) || type.isPrimitive() || Converter.isWrapper(type)) {
-            setEasyField(object, field, value);
+            return getEasyValue(field.getType(), value);
         } else if (LocalDate.class.equals(type) || LocalTime.class.equals(type) || LocalDateTime.class.equals(type)) {
-            setDateField(object, field, value);
+            return getDateValue(field, field.getType(), value);
         } else if (List.class.isAssignableFrom(type) || Set.class.isAssignableFrom(type)) {
-            setCollectionField(object, field, value);
+            return getCollectionValue(field, value);
         } else if (type.isEnum()) {
-            setEnumField(object, field, value);
+            getEnumValue(field.getType(), value);
         } else {
 
         }
+        return null;
     }
 
 
-    public static void setCollectionField(Object object, Field field, String value) {
+    public static Object getCollectionValue(Field field, String value) {
         var type = field.getType();
         var elemType = field.getGenericType();
-        Collection collection;
+        Collection collection = null;
         if (Set.class.isAssignableFrom(type)) {
 
         } else {
 
         }
+        return collection;
     }
 
     /**
      * Method for setting class fields such as LocalDate, LocalTime and LocalDateTime.
      *
-     * @param object object of which field should be set.
      * @param field  field.
      * @param value  value string format.
      */
-    public static void setDateField(Object object, Field field, String value) {
+    public static Object getDateValue(Field field, Class<?> type, String value) {
         var valBuilder = new StringBuilder(value);
         removeFirstAndLast(valBuilder);
-        var type = field.getType();
-        try {
-            if (field.isAnnotationPresent(DateFormat.class)) {
-                var annotation = field.getAnnotation(DateFormat.class);
 
-                var formatter = DateTimeFormatter.ofPattern(annotation.value());
-                if (LocalDate.class.equals(type)) {
-                    var date = LocalDate.parse(valBuilder.toString(), formatter);
-                    field.set(object, date);
-                } else if (LocalTime.class.equals(type)) {
-                    var date = LocalTime.parse(valBuilder.toString(), formatter);
-                    field.set(object, date);
-                } else if (LocalDateTime.class.equals(type)) {
-                    var date = LocalDateTime.parse(valBuilder.toString(), formatter);
-                    field.set(object, date);
-                }
-            } else {
-                if (LocalDate.class.equals(type)) {
-                    var date = LocalDate.parse(valBuilder.toString());
-                    field.set(object, date);
-                } else if (LocalTime.class.equals(type)) {
-                    var date = LocalTime.parse(valBuilder.toString());
-                    field.set(object, date);
-                } else if (LocalDateTime.class.equals(type)) {
-                    var date = LocalDateTime.parse(valBuilder.toString());
-                    field.set(object, date);
-                }
+        if (field.isAnnotationPresent(DateFormat.class)) {
+            var annotation = field.getAnnotation(DateFormat.class);
+
+            var formatter = DateTimeFormatter.ofPattern(annotation.value());
+            if (LocalDate.class.equals(type)) {
+                return LocalDate.parse(valBuilder.toString(), formatter);
+            } else if (LocalTime.class.equals(type)) {
+                return LocalTime.parse(valBuilder.toString(), formatter);
+            } else if (LocalDateTime.class.equals(type)) {
+                return LocalDateTime.parse(valBuilder.toString(), formatter);
             }
-        } catch (IllegalAccessException ignored) {
-            // TODO smth.
+        } else {
+            if (LocalDate.class.equals(type)) {
+                return LocalDate.parse(valBuilder.toString());
+            } else if (LocalTime.class.equals(type)) {
+                return LocalTime.parse(valBuilder.toString());
+            } else if (LocalDateTime.class.equals(type)) {
+                return LocalDateTime.parse(valBuilder.toString());
+            }
         }
+        return null;
     }
 
     /**
      * Method for setting enum fields.
      *
-     * @param object object of which field should be set.
-     * @param field  field.
-     * @param value  value in string format.
+     * @param value value in string format.
      */
-    public static void setEnumField(Object object, Field field, String value) {
-        var type = field.getType();
+    public static Enum<?> getEnumValue(Class<?> type, String value) {
         var valBuilder = new StringBuilder(value);
         removeFirstAndLast(valBuilder);
         var constants = type.getEnumConstants();
@@ -162,30 +154,21 @@ public class Deconverter {
                 .stream(constants)
                 .filter(elem -> elem.toString().equals(valBuilder.toString())).findFirst();
         if (constant.isPresent()) {
-            try {
-                field.set(object, constant.get());
-            } catch (IllegalAccessException ex) {
-                // TODO add smth.
-            }
+            return (Enum<?>) constant.get();
         }
+        return null;
     }
 
     /**
      * Method for setting fields such as string, primitive and wrapper.
      *
-     * @param object object of which field should be set.
-     * @param field  field.
-     * @param value  in string format.
+     * @param value in string format.
      */
-    public static void setEasyField(Object object, Field field, String value) {
+    public static Object getEasyValue(Class<?> type, String value) {
         var valBuilder = new StringBuilder(value);
         removeFirstAndLast(valBuilder);
-        var type = field.getType();
-        try {
-            field.set(object, toObject(type, valBuilder.toString()));
-        } catch (IllegalAccessException e) {
+        return toObject(type, valBuilder.toString());
 
-        }
     }
 
     /**
