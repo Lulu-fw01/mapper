@@ -6,6 +6,8 @@ import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -54,15 +56,30 @@ class DeconverterTest {
 
 
     @Test
-    void setCollectionField() {
+    void getCollectionValue() {
         var person = new Person();
         try {
             var field = person.getClass().getDeclaredField("manyNumbers");
             field.setAccessible(true);
-            Deconverter.getCollectionValue(field, "[\"1\", \"5\", \"8\"]");
+            var val = Deconverter.getCollectionValue(field, "[\"1\", \"5\", \"8\"]");
+            var answer = new ArrayList<Integer>();
+            answer.add(1);
+            answer.add(5);
+            answer.add(8);
+            assert val != null;
+            assertArrayEquals(answer.toArray(), val.toArray());
         } catch (NoSuchFieldException e) {
 
         }
+    }
+
+    @Test
+    void getStringWithoutBorders() {
+        var res = Deconverter.getStringWithoutBorders("\"5\"", '\"', '\"');
+        assertEquals("5", res);
+
+        res = Deconverter.getStringWithoutBorders("{\"a\", \"b\"}", '{', '}');
+        assertEquals("\"a\", \"b\"", res);
     }
 
 }

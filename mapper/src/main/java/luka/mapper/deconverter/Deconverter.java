@@ -6,8 +6,7 @@ import ru.hse.homework4.Exported;
 import ru.hse.homework4.Ignored;
 import ru.hse.homework4.PropertyName;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,11 +16,24 @@ import java.util.*;
 
 public class Deconverter {
 
-    public static <T> void getObjectFromString(T clearObject, String string) {
-        if (!clearObject.getClass().isAnnotationPresent(Exported.class)) {
-            return;
+    public static <T> T getObjectFromString(Class<T> clazz, String input) {
+        T clearObject;
+        var constructors = clazz.getConstructors();
+        if (checkPublicClearConstructor(constructors)) {
+            try {
+                var constructor = clazz.getConstructor();
+                // Crate clear object.
+                clearObject = constructor.newInstance();
+                if (!clearObject.getClass().isAnnotationPresent(Exported.class)) {
+                    // TODO throw smth.
+                    return null;
+                }
+                setFields(clearObject, input);
+                return clearObject;
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ignored) {
+            }
         }
-        setFields(clearObject, string);
+        return null;
     }
 
     public static void setFields(Object object, String fieldsString) {
@@ -31,8 +43,8 @@ public class Deconverter {
         if (fieldsString.charAt(0) != '{' || fieldsString.charAt(fieldsString.length() - 1) != '}') {
             // TODO throw smth.
         }
-        var strBuilder = new StringBuilder(fieldsString);
-        removeFirstAndLast(strBuilder);
+
+        var content = getStringWithoutBorders(fieldsString, '{', '}');
 
         var clazz = object.getClass();
 
@@ -43,7 +55,7 @@ public class Deconverter {
                         && !Modifier.isStatic(elem.getModifiers()))
                 .toList();
 
-        var strFields = strBuilder.toString().split(",");
+        var strFields = content.split(",");
         for (var strField : strFields) {
             // Get array where 0 elem is field name
             // and 1 elem it's value in string format.
@@ -75,21 +87,24 @@ public class Deconverter {
         }
     }
 
+    /**
+     * Method which returns value of field.
+     *
+     * */
     public static Object getValueFromString(Field field, Class<?> type, String value) {
         field.setAccessible(true);
 
         if (String.class.equals(type) || type.isPrimitive() || Converter.isWrapper(type)) {
-            return getEasyValue(field.getType(), value);
+            return getEasyValue(type, value);
         } else if (LocalDate.class.equals(type) || LocalTime.class.equals(type) || LocalDateTime.class.equals(type)) {
-            return getDateValue(field, field.getType(), value);
+            return getDateValue(field, type, value);
         } else if (List.class.isAssignableFrom(type) || Set.class.isAssignableFrom(type)) {
             return getCollectionValue(field, value);
         } else if (type.isEnum()) {
-            return getEnumValue(field.getType(), value);
+            return getEnumValue(type, value);
         } else {
-
+            return getObjectFromString(type, value);
         }
-        return null;
     }
 
 
@@ -99,26 +114,25 @@ public class Deconverter {
      * @param field field.
      * @param value value in string format.
      */
-    public static Object getCollectionValue(Field field, String value) {
+    public static Collection<?> getCollectionValue(Field field, String value) {
         // TODO check first and last symbol.
         var type = field.getType();
-        var elemType = field.getGenericType().getClass();
+        var elemType = ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
         // TODO exported checking.
         ArrayList<Object> result = new ArrayList<>();
 
-        var valBuilder = new StringBuilder(value);
-        removeFirstAndLast(valBuilder);
-
-        var elements = valBuilder.toString().split(",");
+        var elementsString = getStringWithoutBorders(value, '[', ']');
+        var elements = elementsString.split(",");
 
         for (var element : elements) {
-            result.add(getValueFromString(field, elemType, element));
+            var elem = getValueFromString(field, Integer.class, element);
+            result.add(elem);
         }
 
         if (Set.class.isAssignableFrom(type)) {
-            return Set.of(result);
+            return Set.copyOf(result);
         } else if (List.class.isAssignableFrom(type)) {
-            return List.of(result);
+            return result.stream().toList();
         }
         return null;
     }
@@ -131,27 +145,26 @@ public class Deconverter {
      * @param value value in string format.
      */
     public static Object getDateValue(Field field, Class<?> type, String value) {
-        var valBuilder = new StringBuilder(value);
-        removeFirstAndLast(valBuilder);
+        var content = getStringWithoutBorders(value, '\"', '\"');
 
         if (field.isAnnotationPresent(DateFormat.class)) {
             var annotation = field.getAnnotation(DateFormat.class);
 
             var formatter = DateTimeFormatter.ofPattern(annotation.value());
             if (LocalDate.class.equals(type)) {
-                return LocalDate.parse(valBuilder.toString(), formatter);
+                return LocalDate.parse(content, formatter);
             } else if (LocalTime.class.equals(type)) {
-                return LocalTime.parse(valBuilder.toString(), formatter);
+                return LocalTime.parse(content, formatter);
             } else if (LocalDateTime.class.equals(type)) {
-                return LocalDateTime.parse(valBuilder.toString(), formatter);
+                return LocalDateTime.parse(content, formatter);
             }
         } else {
             if (LocalDate.class.equals(type)) {
-                return LocalDate.parse(valBuilder.toString());
+                return LocalDate.parse(content);
             } else if (LocalTime.class.equals(type)) {
-                return LocalTime.parse(valBuilder.toString());
+                return LocalTime.parse(content);
             } else if (LocalDateTime.class.equals(type)) {
-                return LocalDateTime.parse(valBuilder.toString());
+                return LocalDateTime.parse(content);
             }
         }
         return null;
@@ -164,13 +177,14 @@ public class Deconverter {
      * @param value value in string format.
      */
     public static Enum<?> getEnumValue(Class<?> type, String value) {
-        var valBuilder = new StringBuilder(value);
-        removeFirstAndLast(valBuilder);
+
+        var content = getStringWithoutBorders(value, '\"', '\"');
+
         var constants = type.getEnumConstants();
         // Find enum constant with such value.
         var constant = Arrays
                 .stream(constants)
-                .filter(elem -> elem.toString().equals(valBuilder.toString())).findFirst();
+                .filter(elem -> elem.toString().equals(content)).findFirst();
         return (Enum<?>) constant.orElse(null);
     }
 
@@ -181,10 +195,8 @@ public class Deconverter {
      * @param value value in string format.
      */
     public static Object getEasyValue(Class<?> type, String value) {
-        var valBuilder = new StringBuilder(value);
-        removeFirstAndLast(valBuilder);
-        return toObject(type, valBuilder.toString());
-
+        var content = getStringWithoutBorders(value, '\"', '\"');
+        return toObject(type, content);
     }
 
     /**
@@ -218,8 +230,23 @@ public class Deconverter {
         return value;
     }
 
-    private static void removeFirstAndLast(StringBuilder stringBuilder) {
-        stringBuilder.deleteCharAt(0);
-        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+    public static String getStringWithoutBorders(String str, Character leftBorder, Character rightBorder) {
+        var left = str.indexOf(leftBorder);
+        var right = str.lastIndexOf(rightBorder);
+        return str.substring(left + 1, right);
+    }
+
+    /**
+     * Check if class has standard constructor without parameters.
+     *
+     * */
+    public static boolean checkPublicClearConstructor(Constructor<?>[] constructors) {
+        for (var constructor : constructors) {
+            if (constructor.getParameterCount() == 0 && Modifier.isPublic(constructor.getModifiers())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

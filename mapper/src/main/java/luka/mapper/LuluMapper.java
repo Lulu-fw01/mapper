@@ -37,20 +37,7 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T readFromString(Class<T> clazz, String input) {
-        var constructors = clazz.getConstructors();
-        if (checkPublicClearConstructor(constructors)) {
-            try {
-                var constructor = clazz.getConstructor();
-                // Crate clear object.
-                var clearObject = constructor.newInstance();
-                Deconverter.getObjectFromString(clearObject, input);
-                return clearObject;
-            } catch (NoSuchMethodException ignored) {
-            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
+        return Deconverter.getObjectFromString(clazz, input);
     }
 
     /**
@@ -144,7 +131,7 @@ public class LuluMapper implements Mapper {
             throw new UnsupportedOperationException("Record classes are not supported");
         }
         var constructors = object.getClass().getConstructors();
-        if (checkPublicClearConstructor(constructors)) {
+        if (Deconverter.checkPublicClearConstructor(constructors)) {
             return Converter.objectToJson(object);
         }
         return "";
@@ -216,17 +203,4 @@ public class LuluMapper implements Mapper {
         write(object, new FileOutputStream(file));
     }
 
-    /**
-     * Check if class has standard constructor without parameters.
-     *
-     * */
-    static boolean checkPublicClearConstructor(Constructor<?>[] constructors) {
-        for (var constructor : constructors) {
-            if (constructor.getParameterCount() == 0 && Modifier.isPublic(constructor.getModifiers())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }
