@@ -32,9 +32,7 @@ public class Deconverter {
             // TODO throw smth.
         }
         var strBuilder = new StringBuilder(fieldsString);
-
-        strBuilder.deleteCharAt(0);
-        strBuilder.deleteCharAt(fieldsString.length() - 1);
+        removeFirstAndLast(strBuilder);
 
         var clazz = object.getClass();
 
@@ -87,7 +85,7 @@ public class Deconverter {
         } else if (List.class.isAssignableFrom(type) || Set.class.isAssignableFrom(type)) {
             return getCollectionValue(field, value);
         } else if (type.isEnum()) {
-            getEnumValue(field.getType(), value);
+            return getEnumValue(field.getType(), value);
         } else {
 
         }
@@ -95,23 +93,42 @@ public class Deconverter {
     }
 
 
+    /**
+     * Method for getting values of List or Set from String.
+     *
+     * @param field field.
+     * @param value value in string format.
+     */
     public static Object getCollectionValue(Field field, String value) {
+        // TODO check first and last symbol.
         var type = field.getType();
-        var elemType = field.getGenericType();
-        Collection collection = null;
-        if (Set.class.isAssignableFrom(type)) {
+        var elemType = field.getGenericType().getClass();
+        // TODO exported checking.
+        ArrayList<Object> result = new ArrayList<>();
 
-        } else {
+        var valBuilder = new StringBuilder(value);
+        removeFirstAndLast(valBuilder);
 
+        var elements = valBuilder.toString().split(",");
+
+        for (var element : elements) {
+            result.add(getValueFromString(field, elemType, element));
         }
-        return collection;
+
+        if (Set.class.isAssignableFrom(type)) {
+            return Set.of(result);
+        } else if (List.class.isAssignableFrom(type)) {
+            return List.of(result);
+        }
+        return null;
     }
 
     /**
-     * Method for setting class fields such as LocalDate, LocalTime and LocalDateTime.
+     * Method for getting values of LocalDate, LocalTime or LocalDateTime from string.
      *
-     * @param field  field.
-     * @param value  value string format.
+     * @param field field.
+     * @param type  type of field.
+     * @param value value in string format.
      */
     public static Object getDateValue(Field field, Class<?> type, String value) {
         var valBuilder = new StringBuilder(value);
@@ -141,8 +158,9 @@ public class Deconverter {
     }
 
     /**
-     * Method for setting enum fields.
+     * Method for getting enum values from string.
      *
+     * @param type  field type.
      * @param value value in string format.
      */
     public static Enum<?> getEnumValue(Class<?> type, String value) {
@@ -153,16 +171,14 @@ public class Deconverter {
         var constant = Arrays
                 .stream(constants)
                 .filter(elem -> elem.toString().equals(valBuilder.toString())).findFirst();
-        if (constant.isPresent()) {
-            return (Enum<?>) constant.get();
-        }
-        return null;
+        return (Enum<?>) constant.orElse(null);
     }
 
     /**
-     * Method for setting fields such as string, primitive and wrapper.
+     * Method for getting values of string, primitive and wrapper from string.
      *
-     * @param value in string format.
+     * @param type  field value
+     * @param value value in string format.
      */
     public static Object getEasyValue(Class<?> type, String value) {
         var valBuilder = new StringBuilder(value);
