@@ -5,12 +5,24 @@ import luka.mapper.deconverter.Deconverter;
 import ru.hse.homework4.*;
 
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class LuluMapper implements Mapper {
+
+    private boolean retainIdentity;
+
+    public LuluMapper() {
+        retainIdentity = false;
+    }
+
+    public LuluMapper(boolean retainIdentity) {
+        this.retainIdentity = retainIdentity;
+    }
+
+    public void setRetainIdentity(boolean retainIdentity) {
+        this.retainIdentity = retainIdentity;
+    }
 
     /**
      * Читает сохранённый экземпляр класса {@code clazz} из строки {@code input}
@@ -72,7 +84,8 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T read(Class<T> clazz, InputStream inputStream) throws IOException {
-        return null;
+        var inputStr = Arrays.toString(inputStream.readAllBytes());
+        return readFromString(clazz, inputStr);
     }
 
     /**
@@ -99,7 +112,7 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T read(Class<T> clazz, File file) throws IOException {
-        return null;
+        return read(clazz, new FileInputStream(file));
     }
 
     /**

@@ -7,7 +7,6 @@ import ru.hse.homework4.Ignored;
 import ru.hse.homework4.PropertyName;
 
 import java.lang.reflect.*;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -16,6 +15,12 @@ import java.util.*;
 
 public class Deconverter {
 
+    /**
+     * Method which convert string into object.
+     *
+     * @param clazz object class.
+     * @param input object in string format.
+     * */
     public static <T> T getObjectFromString(Class<T> clazz, String input) {
         T clearObject;
         var constructors = clazz.getConstructors();
@@ -36,6 +41,12 @@ public class Deconverter {
         return null;
     }
 
+    /**
+     * Method for setting fields.
+     *
+     * @param object object e=which fields should be set.
+     * @param fieldsString object in string format.
+     * */
     public static void setFields(Object object, String fieldsString) {
         if (!object.getClass().isAnnotationPresent(Exported.class)) {
             return;
@@ -90,9 +101,17 @@ public class Deconverter {
     /**
      * Method which returns value of field.
      *
+     * @param field field.
+     * @param type type of object
      * */
     public static Object getValueFromString(Field field, Class<?> type, String value) {
         field.setAccessible(true);
+        if (Objects.equals(value, "null")) {
+            if (type.isPrimitive()) {
+                // TODO throw smth.
+            }
+            return null;
+        }
 
         if (String.class.equals(type) || type.isPrimitive() || Converter.isWrapper(type)) {
             return getEasyValue(type, value);
@@ -107,7 +126,6 @@ public class Deconverter {
         }
     }
 
-
     /**
      * Method for getting values of List or Set from String.
      *
@@ -115,9 +133,8 @@ public class Deconverter {
      * @param value value in string format.
      */
     public static Collection<?> getCollectionValue(Field field, String value) {
-        // TODO check first and last symbol.
         var type = field.getType();
-        var elemType = ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
+        var elemType = (Class<?>)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
         // TODO exported checking.
         ArrayList<Object> result = new ArrayList<>();
 
@@ -125,7 +142,7 @@ public class Deconverter {
         var elements = elementsString.split(",");
 
         for (var element : elements) {
-            var elem = getValueFromString(field, Integer.class, element);
+            var elem = getValueFromString(field, elemType, element);
             result.add(elem);
         }
 
@@ -230,15 +247,26 @@ public class Deconverter {
         return value;
     }
 
+    /**
+     * Method which remove two symbols in the beginning and end of string.
+     *
+     * @param str original string.
+     * @param leftBorder first character which should be removed.
+     * @param rightBorder last character which should be removed.
+     * */
     public static String getStringWithoutBorders(String str, Character leftBorder, Character rightBorder) {
         var left = str.indexOf(leftBorder);
         var right = str.lastIndexOf(rightBorder);
+        if (left == -1 || right == -1) {
+            // TODO throw smth.
+        }
         return str.substring(left + 1, right);
     }
 
     /**
      * Check if class has standard constructor without parameters.
      *
+     * @param constructors array of constructors.
      * */
     public static boolean checkPublicClearConstructor(Constructor<?>[] constructors) {
         for (var constructor : constructors) {
@@ -246,7 +274,6 @@ public class Deconverter {
                 return true;
             }
         }
-
         return false;
     }
 }
