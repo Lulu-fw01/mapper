@@ -210,7 +210,7 @@ public class Converter {
         if (usedClasses.contains(collection)) {
             throw new CycleException("Cycle was detected.", collection);
         }
-
+        // TODO check if not correct type of collection elem.
         usedClasses.add(collection);
         StringBuilder result = new StringBuilder("[");
         var arr = collection.toArray();

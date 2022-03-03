@@ -1,15 +1,18 @@
 package luka.mapper.deconverter;
 
 import luka.mapper.converter.Converter;
+import ru.hse.homework4.DateFormat;
 import ru.hse.homework4.Exported;
 import ru.hse.homework4.Ignored;
 import ru.hse.homework4.PropertyName;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Deconverter {
@@ -77,16 +80,78 @@ public class Deconverter {
         if (String.class.equals(type) || type.isPrimitive() || Converter.isWrapper(type)) {
             setEasyField(object, field, value);
         } else if (LocalDate.class.equals(type) || LocalTime.class.equals(type) || LocalDateTime.class.equals(type)) {
-
-        } else if (object instanceof List<?> || object instanceof Set<?>) {
-
+            setDateField(object, field, value);
+        } else if (List.class.isAssignableFrom(type) || Set.class.isAssignableFrom(type)) {
+            setCollectionField(object, field, value);
         } else if (type.isEnum()) {
+            setEnumField(object, field, value);
+        } else {
+
+        }
+    }
+
+
+    public static void setCollectionField(Object object, Field field, String value) {
+        var type = field.getType();
+        var elemType = field.getGenericType();
+        Collection collection;
+        if (Set.class.isAssignableFrom(type)) {
 
         } else {
 
         }
     }
 
+    /**
+     * Method for setting class fields such as LocalDate, LocalTime and LocalDateTime.
+     *
+     * @param object object of which field should be set.
+     * @param field  field.
+     * @param value  value string format.
+     */
+    public static void setDateField(Object object, Field field, String value) {
+        var valBuilder = new StringBuilder(value);
+        removeFirstAndLast(valBuilder);
+        var type = field.getType();
+        try {
+            if (field.isAnnotationPresent(DateFormat.class)) {
+                var annotation = field.getAnnotation(DateFormat.class);
+
+                var formatter = DateTimeFormatter.ofPattern(annotation.value());
+                if (LocalDate.class.equals(type)) {
+                    var date = LocalDate.parse(valBuilder.toString(), formatter);
+                    field.set(object, date);
+                } else if (LocalTime.class.equals(type)) {
+                    var date = LocalTime.parse(valBuilder.toString(), formatter);
+                    field.set(object, date);
+                } else if (LocalDateTime.class.equals(type)) {
+                    var date = LocalDateTime.parse(valBuilder.toString(), formatter);
+                    field.set(object, date);
+                }
+            } else {
+                if (LocalDate.class.equals(type)) {
+                    var date = LocalDate.parse(valBuilder.toString());
+                    field.set(object, date);
+                } else if (LocalTime.class.equals(type)) {
+                    var date = LocalTime.parse(valBuilder.toString());
+                    field.set(object, date);
+                } else if (LocalDateTime.class.equals(type)) {
+                    var date = LocalDateTime.parse(valBuilder.toString());
+                    field.set(object, date);
+                }
+            }
+        } catch (IllegalAccessException ignored) {
+            // TODO smth.
+        }
+    }
+
+    /**
+     * Method for setting enum fields.
+     *
+     * @param object object of which field should be set.
+     * @param field  field.
+     * @param value  value in string format.
+     */
     public static void setEnumField(Object object, Field field, String value) {
         var type = field.getType();
         var valBuilder = new StringBuilder(value);
@@ -105,14 +170,13 @@ public class Deconverter {
         }
     }
 
-
     /**
      * Method for setting fields such as string, primitive and wrapper.
      *
      * @param object object of which field should be set.
-     * @param field field.
-     * @param value in string format.
-     * */
+     * @param field  field.
+     * @param value  in string format.
+     */
     public static void setEasyField(Object object, Field field, String value) {
         var valBuilder = new StringBuilder(value);
         removeFirstAndLast(valBuilder);
@@ -129,27 +193,27 @@ public class Deconverter {
      *
      * @param clazz output object type.
      * @param value value in string format.
-     * */
-    public static Object toObject(Class<?> clazz, String value ) {
-        if( Boolean.class.equals(clazz) || boolean.class.equals(clazz)) {
+     */
+    public static Object toObject(Class<?> clazz, String value) {
+        if (Boolean.class.equals(clazz) || boolean.class.equals(clazz)) {
             return Boolean.parseBoolean(value);
         }
-        if( Byte.class.equals(clazz) || byte.class.equals(clazz)) {
+        if (Byte.class.equals(clazz) || byte.class.equals(clazz)) {
             return Byte.parseByte(value);
         }
-        if( Short.class.equals(clazz) || short.class.equals(clazz)) {
+        if (Short.class.equals(clazz) || short.class.equals(clazz)) {
             return Short.parseShort(value);
         }
-        if( Integer.class.equals(clazz) || int.class.equals(clazz)) {
+        if (Integer.class.equals(clazz) || int.class.equals(clazz)) {
             return Integer.parseInt(value);
         }
-        if( Long.class.equals(clazz) || long.class.equals(clazz)) {
+        if (Long.class.equals(clazz) || long.class.equals(clazz)) {
             return Long.parseLong(value);
         }
-        if( Float.class.equals(clazz) || float.class.equals(clazz)) {
+        if (Float.class.equals(clazz) || float.class.equals(clazz)) {
             return Float.parseFloat(value);
         }
-        if( Double.class.equals(clazz) || double.class.equals(clazz)) {
+        if (Double.class.equals(clazz) || double.class.equals(clazz)) {
             return Double.parseDouble(value);
         }
         return value;
