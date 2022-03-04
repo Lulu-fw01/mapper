@@ -62,8 +62,6 @@ public class Deconverter {
             // TODO throw smth.
         }
 
-        var content = getStringWithoutBorders(fieldsString, '{', '}');
-
         var clazz = object.getClass();
 
         // Filter all class fields.
@@ -73,23 +71,19 @@ public class Deconverter {
                         && !Modifier.isStatic(elem.getModifiers()))
                 .toList();
 
-        var strFields = content.split(",");
-        for (var strField : strFields) {
-            // Get array where 0 elem is field name
-            // and 1 elem it's value in string format.
-            var nameVal = strField.split(": ");
-            var fieldName = new StringBuilder(nameVal[0]);
-            // Remove " and ".
-            fieldName.deleteCharAt(0);
-            fieldName.deleteCharAt(fieldName.length() - 1);
+        var nodeFields = getJsonNodes(fieldsString);
+        for (var nodeField : nodeFields) {
+
+            var fieldName = getStringWithoutBorders(nodeField.name, '\"', '\"');
             // Find field with this name or propertyName annotation.
             var optField = classFields
                     .stream()
                     .filter(elem ->
-                            elem.getName().equals(fieldName.toString())
+                            elem.getName().equals(fieldName)
                                     || (elem.isAnnotationPresent(PropertyName.class)
-                                    && elem.getAnnotation(PropertyName.class).value().equals(fieldName.toString())))
+                                    && elem.getAnnotation(PropertyName.class).value().equals(fieldName)))
                     .findFirst();
+
             Field field;
             if (optField.isPresent()) {
                 field = optField.get();
@@ -98,7 +92,7 @@ public class Deconverter {
             }
             // Set field value.
             try {
-                field.set(object, getValueFromString(field, field.getType(), nameVal[1]));
+                field.set(object, getValueFromString(field, field.getType(), nodeField.value));
             } catch (IllegalAccessException e) {
 
             }
@@ -311,13 +305,20 @@ public class Deconverter {
     }
 
 
-
-
+    /**
+     * Method for converting Json string into array of JsonNodes.
+     *
+     * @param input Json string.
+     * */
     public static ArrayList<JsonNode> getJsonNodes(String input) {
         int left = 1;
         int right = input.length() - 1;
         var inBuilder = new StringBuilder(input);
         ArrayList<JsonNode> result = new ArrayList<>();
+        if (inBuilder.charAt(0) != '{' || inBuilder.charAt(right) != '}') {
+            return result;
+        }
+
         while (left < right) {
             // Index of : .
             int fieldMid = inBuilder.indexOf(":" ,left);
@@ -344,6 +345,18 @@ public class Deconverter {
             left = rightB;
             result.add(node);
         }
+        return result;
+    }
+
+    public static ArrayList<JsonNode> getJsonArrayNodes(String input) {
+        int left = 1;
+        int right = input.length() - 1;
+        var inBuilder = new StringBuilder(input);
+        ArrayList<JsonNode> result = new ArrayList<>();
+        if (inBuilder.charAt(0) != '[' || inBuilder.charAt(right) != ']') {
+            return result;
+        }
+
         return result;
     }
 
