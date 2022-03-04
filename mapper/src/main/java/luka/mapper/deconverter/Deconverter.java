@@ -136,7 +136,7 @@ public class Deconverter {
     public static Collection<?> getCollectionValue(Field field, String value) {
 
         var elemType = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-        // TODO exported checking.
+
         ArrayList<Object> result = new ArrayList<>();
 
         var elements = getJsonArrayNodes(value);
@@ -160,7 +160,6 @@ public class Deconverter {
             return getCollectionValue(field, value);
         }
         var elemType = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-        // TODO exported checking.
         ArrayList<Object> result = new ArrayList<>();
 
         var elements = getJsonArrayNodes(value);
@@ -288,8 +287,8 @@ public class Deconverter {
     public static String getStringWithoutBorders(String str, Character leftBorder, Character rightBorder) {
         var left = str.indexOf(leftBorder);
         var right = str.lastIndexOf(rightBorder);
-        if (left == -1 || right == -1) {
-            // TODO throw smth.
+        if (left == -1 || right == -1 || left > right) {
+            throw new WrongJsonFormatException(String.format("Problems with removing %s and %s from string %s", leftBorder, rightBorder, str));
         }
         return str.substring(left + 1, right);
     }
@@ -415,10 +414,12 @@ public class Deconverter {
             }
 
             int rightB = findRightBorder(inBuilder, left, right);
-            node.value = inBuilder.substring(left, rightB);
-
+            if (rightB - left >= 3) {
+                node.value = inBuilder.substring(left, rightB);
+                result.add(node);
+            }
             left = rightB;
-            result.add(node);
+
         }
 
         return result;
@@ -470,4 +471,5 @@ public class Deconverter {
         }
         return left;
     }
+
 }

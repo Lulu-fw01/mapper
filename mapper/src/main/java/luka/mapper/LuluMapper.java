@@ -6,9 +6,7 @@ import ru.hse.homework4.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Optional;
 
 public class LuluMapper implements Mapper {
 
@@ -51,10 +49,17 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T readFromString(Class<T> clazz, String input) {
+        var newInput = input
+                .replaceAll("\n", "")
+                .replaceAll(" \"", "\"")
+                .replaceAll("\" ", "\"")
+                .replaceAll("  \"", "\"")
+                .replaceAll("\"  ", "\"");
+
         if (retainIdentity) {
             return Deconverter.getObjectFromString(clazz, input, new HashMap<String, Object>());
         }
-        return Deconverter.getObjectFromString(clazz, input);
+        return Deconverter.getObjectFromString(clazz, newInput);
     }
 
     /**
@@ -89,7 +94,7 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T read(Class<T> clazz, InputStream inputStream) throws IOException {
-        var inputStr = Arrays.toString(inputStream.readAllBytes());
+        var inputStr = new String(inputStream.readAllBytes());
         return readFromString(clazz, inputStr);
     }
 

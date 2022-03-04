@@ -22,6 +22,19 @@ class LuluMapperTest {
 
     @Test
     void testRead() {
+        var file = new File("output.json");
+        Mapper myMapper = new LuluMapper();
+        try {
+            var result = myMapper.read(Person.class, file);
+            Person answer = Person.initPerson();
+            assert result != null;
+            assertEquals(answer.name, result.name);
+            assertEquals(answer.getAge(), result.getAge());
+            assertEquals(answer.lastName, result.lastName);
+            assertArrayEquals(answer.manyNumbers.toArray(new Integer[0]), result.manyNumbers.toArray(new Integer[0]) );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

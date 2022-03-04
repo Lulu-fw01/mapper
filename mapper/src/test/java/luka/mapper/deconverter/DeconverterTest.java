@@ -105,7 +105,7 @@ class DeconverterTest {
         assertEquals(answer.name, result.name);
         assertEquals(answer.getAge(), result.getAge());
         assertEquals(answer.lastName, result.lastName);
-        assertArrayEquals(answer.manyNumbers.toArray(new Integer[0]), result.manyNumbers.toArray(new Integer[0]) );;
+        assertArrayEquals(answer.manyNumbers.toArray(new Integer[0]), result.manyNumbers.toArray(new Integer[0]) );
 
         var fPair = new Pair();
         fPair.personFirst = Person.initPerson();
