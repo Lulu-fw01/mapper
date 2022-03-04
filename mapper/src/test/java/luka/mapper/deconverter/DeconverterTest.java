@@ -1,15 +1,16 @@
 package luka.mapper.deconverter;
 
+import luka.mapper.converter.Converter;
 import luka.mapper.deconverter.jsonNode.JsonNode;
 import luka.mapper.testClasses.Gender;
 import luka.mapper.testClasses.Human;
+import luka.mapper.testClasses.Pair;
 import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -105,6 +106,18 @@ class DeconverterTest {
         assertEquals(answer.getAge(), result.getAge());
         assertEquals(answer.lastName, result.lastName);
         assertArrayEquals(answer.manyNumbers.toArray(new Integer[0]), result.manyNumbers.toArray(new Integer[0]) );;
+
+        var fPair = new Pair();
+        fPair.personFirst = Person.initPerson();
+        fPair.personSecond = Person.initPerson();
+        jsonString = Converter.objectToJson(fPair);
+
+        var hMap = new HashMap<String, Object>();
+
+        var pair = Deconverter.getObjectFromString(Pair.class, jsonString, hMap);
+
+        assert pair != null;
+        assertEquals(pair.personFirst, pair.personSecond);
     }
 
 

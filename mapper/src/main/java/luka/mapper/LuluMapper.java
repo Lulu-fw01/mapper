@@ -7,7 +7,7 @@ import ru.hse.homework4.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.Optional;
 
 public class LuluMapper implements Mapper {
@@ -52,7 +52,7 @@ public class LuluMapper implements Mapper {
     @Override
     public <T> T readFromString(Class<T> clazz, String input) {
         if (retainIdentity) {
-            return Deconverter.getObjectFromString(clazz, input, new IdentityHashMap<String, Object>());
+            return Deconverter.getObjectFromString(clazz, input, new HashMap<String, Object>());
         }
         return Deconverter.getObjectFromString(clazz, input);
     }

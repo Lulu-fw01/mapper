@@ -39,7 +39,7 @@ public class Deconverter {
      * @param input  object in string format.
      * @param strObj HashMap for retainIdentity condition.
      */
-    public static <T> T getObjectFromString(Class<T> clazz, String input, IdentityHashMap<String, Object> strObj) {
+    public static <T> T getObjectFromString(Class<T> clazz, String input, HashMap<String, Object> strObj) {
         var clearObject = getClearObject(clazz);
         if (clearObject == null) {
             return null;
@@ -55,7 +55,7 @@ public class Deconverter {
      * @param object       object e=which fields should be set.
      * @param fieldsString object in string format.
      */
-    public static void setFields(Object object, String fieldsString, IdentityHashMap<String, Object> strObj) {
+    public static void setFields(Object object, String fieldsString, HashMap<String, Object> strObj) {
         if (!object.getClass().isAnnotationPresent(Exported.class)) {
             return;
         }
@@ -96,9 +96,10 @@ public class Deconverter {
      * @param field field.
      * @param type  type of object
      */
-    public static Object getValueFromString(Field field, Class<?> type, String value, IdentityHashMap<String, Object> strObj) {
+    public static Object getValueFromString(Field field, Class<?> type, String value, HashMap<String, Object> strObj) {
         if (strObj != null) {
             if (type.isAnnotationPresent(Exported.class)) {
+                boolean ck = strObj.containsKey(value);
                 if (strObj.containsKey(value)) {
                     return strObj.get(value);
                 }
@@ -154,7 +155,7 @@ public class Deconverter {
      * @param field field.
      * @param value value in string format.
      * */
-    public static Collection<?> getCollectionValue(Field field, String value, IdentityHashMap<String, Object> strObj) {
+    public static Collection<?> getCollectionValue(Field field, String value, HashMap<String, Object> strObj) {
         if (strObj == null) {
             return getCollectionValue(field, value);
         }
