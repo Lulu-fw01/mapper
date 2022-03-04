@@ -38,6 +38,9 @@ public class Converter {
         if (object == null || !object.getClass().isAnnotationPresent(Exported.class)) {
             return "";
         }
+        if (object.getClass().isRecord()) {
+            throw new UnsupportedOperationException("Record classes are not supported");
+        }
 
         if (usedClasses.contains(object)) {
             throw new CycleException("Cycle was detected.", object);
