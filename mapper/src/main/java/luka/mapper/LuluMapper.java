@@ -147,9 +147,6 @@ public class LuluMapper implements Mapper {
     @Override
     public String writeToString(Object object) {
 
-        if (object.getClass().isRecord()) {
-            throw new UnsupportedOperationException("Record classes are not supported");
-        }
         var constructors = object.getClass().getConstructors();
         if (Deconverter.checkPublicClearConstructor(constructors)) {
             return Converter.objectToJson(object);

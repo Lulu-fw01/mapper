@@ -100,8 +100,11 @@ class DeconverterTest {
         Person result = Deconverter.getObjectFromString(Person.class, jsonString);
 
         Person answer = Person.initPerson();
-        assertEquals(answer, result);
-
+        assert result != null;
+        assertEquals(answer.name, result.name);
+        assertEquals(answer.getAge(), result.getAge());
+        assertEquals(answer.lastName, result.lastName);
+        assertArrayEquals(answer.manyNumbers.toArray(new Integer[0]), result.manyNumbers.toArray(new Integer[0]) );;
     }
 
 
@@ -147,7 +150,35 @@ class DeconverterTest {
             assertEquals(answer.get(i).name, nodes.get(i).name);
             assertEquals(answer.get(i).value, nodes.get(i).value);
         }
+    }
 
+    @Test
+    void getJsonArrayNodes() {
+        var jsonString = "[\"1\", \"5\", \"8\"]";
+
+        var nodes = Deconverter.getJsonArrayNodes(jsonString);
+
+        ArrayList<JsonNode> answer = new ArrayList<>();
+        answer.add(new JsonNode("", "\"1\""));
+        answer.add(new JsonNode("", "\"5\""));
+        answer.add(new JsonNode("", "\"8\""));
+
+        assertEquals(answer.size(), nodes.size());
+
+        for (int i = 0; i < answer.size(); ++i) {
+            assertEquals(answer.get(i).value, nodes.get(i).value);
+        }
+
+        jsonString = "[\"t\", \"6\", \"g\"]";
+        nodes = Deconverter.getJsonArrayNodes(jsonString);
+        answer = new ArrayList<>();
+        answer.add(new JsonNode("", "\"t\""));
+        answer.add(new JsonNode("", "\"6\""));
+        answer.add(new JsonNode("", "\"g\""));
+
+        for (int i = 0; i < answer.size(); ++i) {
+            assertEquals(answer.get(i).value, nodes.get(i).value);
+        }
     }
 
 

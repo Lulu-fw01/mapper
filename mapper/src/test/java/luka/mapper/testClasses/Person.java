@@ -44,6 +44,9 @@ public class Person {
         manyCharacters = chars;
     }
 
+    public ArrayList<Character> getManyCharacters() {
+        return manyCharacters;
+    }
 
     public static Person initPerson() {
         var person = new Person("Mark", 32);
