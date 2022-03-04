@@ -2,6 +2,8 @@ package luka.mapper.testClasses;
 
 import ru.hse.homework4.Exported;
 
+import java.time.LocalDate;
+
 @Exported
 public class Human {
     public Human() {
@@ -17,4 +19,7 @@ public class Human {
     public Gender getGender() {
         return gender;
     }
+
+    public LocalDate birthday;
+
 }

@@ -5,6 +5,7 @@ import luka.mapper.testClasses.Human;
 import luka.mapper.testClasses.Person;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +44,19 @@ class DeconverterTest {
     @Test
     void getDateValue() {
         var person = new Person();
+        var human = new Human();
         try {
             var localDateTime = LocalDateTime.of(2001, 12, 13, 23, 59, 59);
             var field = person.getClass().getDeclaredField("date");
             field.setAccessible(true);
             var val = Deconverter.getDateValue(field, field.getType(), "\"2001-12-13 23:59:59\"");
             assertEquals(localDateTime, val);
+
+            var localDate = LocalDate.of(2001, 12, 13);
+            field = human.getClass().getDeclaredField("birthday");
+            field.setAccessible(true);
+            val = Deconverter.getDateValue(field, field.getType(), "\"2001-12-13\"");
+            assertEquals(localDate, val);
         } catch (NoSuchFieldException e) {
             fail();
         }
@@ -80,6 +88,11 @@ class DeconverterTest {
 
         res = Deconverter.getStringWithoutBorders("{\"a\", \"b\"}", '{', '}');
         assertEquals("\"a\", \"b\"", res);
+    }
+
+    @Test
+    void getObjectFromString() {
+
     }
 
 }

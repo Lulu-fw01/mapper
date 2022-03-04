@@ -7,6 +7,8 @@ import ru.hse.homework4.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
+import java.util.Optional;
 
 public class LuluMapper implements Mapper {
 
@@ -49,6 +51,9 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T readFromString(Class<T> clazz, String input) {
+        if (retainIdentity) {
+            return Deconverter.getObjectFromString(clazz, input, new IdentityHashMap<String, Object>());
+        }
         return Deconverter.getObjectFromString(clazz, input);
     }
 
@@ -112,7 +117,9 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public <T> T read(Class<T> clazz, File file) throws IOException {
-        return read(clazz, new FileInputStream(file));
+        try (var stream = new FileInputStream(file)) {
+            return read(clazz, stream);
+        }
     }
 
     /**
@@ -213,7 +220,9 @@ public class LuluMapper implements Mapper {
      */
     @Override
     public void write(Object object, File file) throws IOException {
-        write(object, new FileOutputStream(file));
+        try (var stream = new FileOutputStream(file)) {
+            write(object, stream);
+        }
     }
 
 }

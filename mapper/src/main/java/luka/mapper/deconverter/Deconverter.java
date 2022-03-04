@@ -22,23 +22,29 @@ public class Deconverter {
      * @param input object in string format.
      * */
     public static <T> T getObjectFromString(Class<T> clazz, String input) {
-        T clearObject;
-        var constructors = clazz.getConstructors();
-        if (checkPublicClearConstructor(constructors)) {
-            try {
-                var constructor = clazz.getConstructor();
-                // Crate clear object.
-                clearObject = constructor.newInstance();
-                if (!clearObject.getClass().isAnnotationPresent(Exported.class)) {
-                    // TODO throw smth.
-                    return null;
-                }
-                setFields(clearObject, input);
-                return clearObject;
-            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ignored) {
-            }
+        var clearObject = getClearObject(clazz);
+        if (clearObject == null) {
+            return null;
         }
-        return null;
+        setFields(clearObject, input);
+        return clearObject;
+    }
+
+    /**
+     * Method which convert string into object.
+     *
+     * @param clazz object class.
+     * @param input object in string format.
+     * @param strObj HashMap for retainIdentity condition.
+     * */
+    public static <T> T getObjectFromString(Class<T> clazz, String input, IdentityHashMap<String, Object> strObj) {
+        var clearObject = getClearObject(clazz);
+        if (clearObject == null) {
+            return null;
+        }
+        strObj.put(input, clearObject);
+        // setFields(clearObject, input);
+        return clearObject;
     }
 
     /**
@@ -275,5 +281,31 @@ public class Deconverter {
             }
         }
         return false;
+    }
+
+    /**
+     * Method which creates clear object of T class.
+     *
+     * @param clazz class of object.
+     *
+     * @return object which was created with public constructor without parameters <p>
+     * or return null if no such constructor or class was not marked as Exported.
+     * */
+    public static <T> T getClearObject(Class<T> clazz) {
+        T clearObject;
+        var constructors = clazz.getConstructors();
+        if (checkPublicClearConstructor(constructors)) {
+            try {
+                var constructor = clazz.getConstructor();
+                // Crate clear object.
+                clearObject = constructor.newInstance();
+                if (!clearObject.getClass().isAnnotationPresent(Exported.class)) {
+                    return null;
+                }
+                return clearObject;
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ignored) {
+            }
+        }
+        return null;
     }
 }
