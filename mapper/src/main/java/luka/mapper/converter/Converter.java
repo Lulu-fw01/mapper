@@ -1,5 +1,6 @@
 package luka.mapper.converter;
 
+import luka.mapper.deconverter.jsonNode.JsonNode;
 import luka.mapper.exceptions.CycleException;
 import luka.mapper.exceptions.SameFieldNamesException;
 import ru.hse.homework4.*;

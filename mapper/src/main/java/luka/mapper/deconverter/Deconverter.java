@@ -1,6 +1,7 @@
 package luka.mapper.deconverter;
 
 import luka.mapper.converter.Converter;
+import luka.mapper.deconverter.jsonNode.JsonNode;
 import ru.hse.homework4.DateFormat;
 import ru.hse.homework4.Exported;
 import ru.hse.homework4.Ignored;
@@ -307,5 +308,89 @@ public class Deconverter {
             }
         }
         return null;
+    }
+
+
+
+
+    public static ArrayList<JsonNode> getJsonNodes(String input) {
+        int left = 1;
+        int right = input.length() - 1;
+        var inBuilder = new StringBuilder(input);
+        ArrayList<JsonNode> result = new ArrayList<>();
+        while (left < right) {
+            // Index of : .
+            int fieldMid = inBuilder.indexOf(":" ,left);
+            if (fieldMid == -1) {
+                return  result;
+            }
+
+            var node = new JsonNode();
+            if (inBuilder.charAt(left) == ',') {
+                left++;
+            }
+            if (inBuilder.charAt(left) == ' ') {
+                left++;
+            }
+            node.name = inBuilder.substring(left, fieldMid);
+
+            fieldMid++;
+            if (inBuilder.charAt(fieldMid) == ' ') {
+                fieldMid++;
+            }
+            int rightB = findRightBorder(inBuilder, fieldMid, right);
+            node.value = inBuilder.substring(fieldMid, rightB);
+
+            left = rightB;
+            result.add(node);
+        }
+        return result;
+    }
+
+    public static Integer findRightBorder(StringBuilder inBuilder, int left, int right) {
+        Stack<Character> borders = new Stack<>();
+        char leftChar = inBuilder.charAt(left);
+        while (left < right) {
+            if (leftChar == '\"' || leftChar == '{' || leftChar == '[' || leftChar == 'n') {
+                break;
+            }
+            left++;
+            leftChar = inBuilder.charAt(left);
+        }
+
+        if (leftChar == 'n') {
+            return left + 4;
+        }
+        left++;
+        borders.push(leftChar);
+        char currChar;
+
+        while (left < right && !borders.empty()) {
+            currChar = inBuilder.charAt(left);
+            if (currChar == '}') {
+                if (borders.peek() == '{') {
+                    borders.pop();
+                } else {
+                    return -1;
+                }
+            } else if (currChar == ']') {
+                if (borders.peek() == '[') {
+                    borders.pop();
+                } else {
+                    return -1;
+                }
+            } else if (currChar == '\"') {
+                if (borders.peek() == '\"') {
+                    borders.pop();
+                } else {
+                    borders.push(currChar);
+                }
+            } else {
+                if (currChar == '{' || currChar == '[')
+                borders.push(currChar);
+            }
+            left++;
+        }
+        return left;
     }
 }

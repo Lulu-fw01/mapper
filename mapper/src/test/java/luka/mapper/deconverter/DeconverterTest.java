@@ -1,5 +1,6 @@
 package luka.mapper.deconverter;
 
+import luka.mapper.deconverter.jsonNode.JsonNode;
 import luka.mapper.testClasses.Gender;
 import luka.mapper.testClasses.Human;
 import luka.mapper.testClasses.Person;
@@ -92,7 +93,62 @@ class DeconverterTest {
 
     @Test
     void getObjectFromString() {
+        var jsonString = "{\"name\": \"Mark\", \"age\": \"32\"," +
+                " \"surname\": \"Zuck\", \"myLocalDateTime\": \"2001-12-13 23:59:59\"," +
+                " \"manyNumbers\": [\"1\", \"5\", \"8\"], \"chars\": [\"t\", \"6\", \"g\"]}";
+
+        Person result = Deconverter.getObjectFromString(Person.class, jsonString);
+
+        Person answer = Person.initPerson();
+        assertEquals(answer, result);
 
     }
+
+
+    @Test
+    void findRightBorder() {
+        var jsonString = "{\"name\": \"Mark\", \"age\": \"32\"," +
+                " \"surname\": \"Zuck\", \"myLocalDateTime\": \"2001-12-13 23:59:59\"," +
+                " \"manyNumbers\": [\"1\", \"5\", \"8\"], \"chars\": [\"t\", \"6\", \"g\"]}";
+
+        var builder = new StringBuilder(jsonString);
+        int res = Deconverter.findRightBorder(builder, 0, jsonString.length());
+        assertEquals(jsonString.length(), res);
+
+        res = Deconverter.findRightBorder(builder, 7, jsonString.length());
+        assertEquals(15, res);
+
+
+        jsonString = "{\"manyNumbers\": [\"1\", \"5\", \"8\"]}";
+        builder = new StringBuilder(jsonString);
+        res = Deconverter.findRightBorder(builder, 14, jsonString.length());
+        assertEquals(jsonString.length() - 1, res);
+    }
+
+    @Test
+    void getJsonNodes() {
+        var jsonString = "{\"name\": \"Mark\", \"age\": \"32\"," +
+                " \"surname\": \"Zuck\", \"myLocalDateTime\": \"2001-12-13 23:59:59\"," +
+                " \"manyNumbers\": [\"1\", \"5\", \"8\"], \"chars\": [\"t\", \"6\", \"g\"]}";
+
+        var nodes = Deconverter.getJsonNodes(jsonString);
+
+        ArrayList<JsonNode> answer = new ArrayList<>();
+        answer.add(new JsonNode("\"name\"", "\"Mark\""));
+        answer.add(new JsonNode("\"age\"", "\"32\""));
+        answer.add(new JsonNode("\"surname\"", "\"Zuck\""));
+        answer.add(new JsonNode("\"myLocalDateTime\"", "\"2001-12-13 23:59:59\""));
+        answer.add(new JsonNode("\"manyNumbers\"", "[\"1\", \"5\", \"8\"]"));
+        answer.add(new JsonNode("\"chars\"", "[\"t\", \"6\", \"g\"]"));
+
+        assertEquals(answer.size(), nodes.size());
+
+        for (int i = 0; i < answer.size(); ++i) {
+            assertEquals(answer.get(i).name, nodes.get(i).name);
+            assertEquals(answer.get(i).value, nodes.get(i).value);
+        }
+
+    }
+
 
 }
