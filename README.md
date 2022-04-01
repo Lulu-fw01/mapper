@@ -3,7 +3,7 @@
 _____
 This task was directed to work with annotations and reflection.<p>
 I had to implement an interface for serialization and deserialization of different objects marked with the appropriate annotations<p>
-In task i could to choose what type of serialization i want realize, but it should be human-readable. I developed something like JSON.<p>
+In task i could choose what type of serialization i want realize, but it should be human readable. I developed something like JSON.<p>
 Futhermore, i wrote many tests.
 _____
 #### Mapper interface 
